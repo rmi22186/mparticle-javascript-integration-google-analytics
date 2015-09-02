@@ -10,7 +10,9 @@
     isInitialized = false,
     isEcommerceLoaded = false,
     forwarderSettings,
-    name = 'GoogleAnalyticsEventForwarder';
+    reportingService,
+    name = 'GoogleAnalyticsEventForwarder',
+    id = null;
 
     function getEventTypeName(eventType) {
         switch (eventType) {
@@ -35,6 +37,8 @@
 
     function processEvent(event) {
         if (isInitialized) {
+            event.eec = 0;
+
             try {
                 if (event.dt == MessageType.PageView) {
                     logPageView(event);
@@ -46,6 +50,10 @@
                     else {
                         logEvent(event);
                     }
+                }
+
+                if (reportingService) {
+                    reportingService(id, event);
                 }
 
                 return 'Successfully sent to ' + name;
@@ -187,9 +195,11 @@
         }
     }
 
-    function initForwarder(settings) {
+    function initForwarder(settings, service, moduleId) {
         try {
             forwarderSettings = settings;
+            reportingService = service;
+            id = moduleId;
 
             if (forwarderSettings.classicMode == 'True') {
                 window._gaq = window._gaq || [];

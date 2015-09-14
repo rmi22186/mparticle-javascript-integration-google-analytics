@@ -5,46 +5,40 @@
         PageView: 3,
         PageEvent: 4,
         CrashReport: 5,
-        OptOut: 6
+        OptOut: 6,
+        Commerce: 16
     },
     isInitialized = false,
     isEcommerceLoaded = false,
+    isEnhancedEcommerceLoaded = false,
     forwarderSettings,
     reportingService,
     name = 'GoogleAnalyticsEventForwarder',
     id = null;
 
     function getEventTypeName(eventType) {
-        switch (eventType) {
-            case window.mParticle.EventType.Navigation:
-                return 'Navigation';
-            case window.mParticle.EventType.Location:
-                return 'Location';
-            case window.mParticle.EventType.Search:
-                return 'Search';
-            case window.mParticle.EventType.Transaction:
-                return 'Transaction';
-            case window.mParticle.EventType.UserContent:
-                return 'User Content';
-            case window.mParticle.EventType.UserPreference:
-                return 'User Preference';
-            case window.mParticle.EventType.Social:
-                return 'Social';
-            default:
-                return 'Other';
-        }
+        return mParticle.EventType.getName(eventType);
     }
 
     function processEvent(event) {
+        var reportEvent = false;
+
         if (isInitialized) {
-            event.eec = 0;
+            event.ExpandedEventCount = 0;
 
             try {
-                if (event.dt == MessageType.PageView) {
+                if (event.EventDataType == MessageType.PageView) {
                     logPageView(event);
+                    reportEvent = true;
                 }
-                else if (event.dt == MessageType.PageEvent) {
-                    if (event.et == window.mParticle.EventType.Transaction) {
+                else if (event.EventDataType == MessageType.Commerce) {
+                    logCommerce(event);
+                    reportEvent = true;
+                }
+                else if (event.EventDataType == MessageType.PageEvent) {
+                    reportEvent = true;
+
+                    if (event.EventCategory == window.mParticle.EventType.Transaction) {
                         logTransaction(event);
                     }
                     else {
@@ -52,7 +46,7 @@
                     }
                 }
 
-                if (reportingService) {
+                if (reportEvent && reportingService) {
                     reportingService(id, event);
                 }
 
@@ -72,13 +66,148 @@
                 if (forwarderSettings.classicMode == 'True') {
                     
 
-                } else {
+                }
+                else {
                     ga('set', 'userId', window.mParticle.generateHash(id));
                     ga('send', 'pageview');
                 }
             }
-        } else {
+        }
+        else {
             return 'Can\'t call setUserIdentity on forwarder ' + name + ', not initialized';
+        }
+    }
+
+    function addEcommerceProduct(product) {
+        ga('ec:addProduct', {
+            id: product.Id,
+            name: product.Name,
+            category: product.Category,
+            brand: product.Brand,
+            variant: product.Variant,
+            price: product.Price,
+            coupon: product.CouponCode,
+            quantity: product.Quantity
+        });
+    }
+
+    function addEcommerceProductImpression(product) {
+        ga('ec:addImpression', {
+            id: product.Id,
+            name: product.Name,
+            type: 'view',
+            category: product.Category,
+            brand: product.Brand,
+            variant: product.Variant
+        });
+    }
+
+    function logCommerce(data) {
+        if (!isEnhancedEcommerceLoaded) {
+            ga('require', 'ec');
+            isEnhancedEcommerceLoaded = true;
+        }
+
+        if (data.CurrencyCode) {
+            // Set currency code if present
+            ga('set', '&cu', data.CurrencyCode);
+        }
+
+        if (data.ProductImpressions) {
+            // Impression event
+
+            data.ProductImpressions.forEach(function (impression) {
+                impression.ProductList.forEach(function (product) {
+                    addEcommerceProductImpression(product);
+                });
+            });
+
+            ga('send', 'event', 'eCommerce', getEventTypeName(data.EventDataType));
+        }
+        else if (data.PromotionAction) {
+            // Promotion event
+            ga('ec:addPromo', {
+                id: data.Id,
+                name: data.Name, 
+                creative: data.Creative,
+                position: data.Position
+            });
+
+            if (data.PromotionAction.PromotionActionType == mParticle.PromotionType.PromotionClick) {
+                ga('ec:setAction', 'promo_click');
+            }
+
+            ga('send', 'event', 'eCommerce', getEventTypeName(data.EventDataType));
+        }
+        else if (data.ProductAction) {
+            if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Purchase) {
+                data.ProductAction.ProductList.forEach(function (product) {
+                    addEcommerceProduct(product);
+                });
+
+                ga('ec:setAction', 'purchase', {
+                    id: data.ProductAction.TransactionId,
+                    affiliation: data.ProductAction.Affiliation,
+                    revenue: data.ProductAction.TotalAmount,
+                    tax: data.ProductAction.TaxAmount,
+                    shipping: data.ProductAction.ShippingAmount,
+                    coupon: data.ProductAction.CouponCode
+                });
+
+                ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+            }
+            else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Refund) {
+                ga('ec:setAction', 'refund', {
+                    id: data.ProductAction.TransactionId
+                });
+
+                ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+            }
+            else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ||
+                data.ProductAction.ProductActionType == mParticle.ProductActionType.RemoveFromCart) {
+
+                data.ProductAction.ProductList.forEach(function (product) {
+                    addEcommerceProduct(product);
+                });
+
+                ga('ec:setAction',
+                    data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ? 'add' : 'remove');
+
+                ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+            }
+            else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Checkout) {
+                if (data.ShoppingCart && data.ShoppingCart.ProductList) {
+                    // Read products from shopping cart
+
+                    data.ShoppingCart.ProductList.forEach(function (product) {
+                        addEcommerceProduct(product);
+                    });
+                }
+
+                ga('ec:setAction', 'checkout', {
+                    'step': data.ProductAction.CheckoutStep,
+                    'option': data.ProductAction.CheckoutOptions
+                });
+
+                ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+            }
+            else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Click) {
+                data.ProductAction.ProductList.forEach(function (product) {
+                    addEcommerceProduct(product);
+                });
+
+                ga('ec:setAction', 'click');
+                ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+            }
+            else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.ViewDetail) {
+
+                data.ProductAction.ProductList.forEach(function (product) {
+                    addEcommerceProduct(product);
+                });
+
+                ga('ec:setAction', 'detail');
+                ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+            }
         }
     }
 
@@ -93,16 +222,16 @@
 
     function logEvent(data) {
         var label = '',
-            category = getEventTypeName(data.et),
+            category = getEventTypeName(data.EventCategory),
             value;
 
-        if (data.attrs) {
-            if (data.attrs.label) {
-                label = data.attrs.label;
+        if (data.EventAttributes) {
+            if (data.EventAttributes.label) {
+                label = data.EventAttributes.label;
             }
 
-            if (data.attrs.value) {
-                value = parseInt(data.attrs.value, 10);
+            if (data.EventAttributes.value) {
+                value = parseInt(data.EventAttributes.value, 10);
 
                 // Test for NaN
                 if (value != value) {
@@ -110,15 +239,15 @@
                 }
             }
 
-            if (data.attrs.category) {
-                category = data.attrs.category
+            if (data.EventAttributes.category) {
+                category = data.EventAttributes.category
             }
         }
 
         if (forwarderSettings.classicMode == 'True') {
             _gaq.push(['_trackEvent',
                 category,
-                data.n,
+                data.EventName,
                 label,
                 value]);
         }
@@ -126,14 +255,16 @@
             ga('send',
                 'event',
                 category,
-                data.n,
+                data.EventName,
                 label,
                 value);
         }
     }
 
     function logTransaction(data) {
-        if (!data.attrs || !data.attrs.$MethodName || !data.attrs.$MethodName === 'LogEcommerceTransaction') {
+        if (!data.EventAttributes ||
+            !data.EventAttributes.$MethodName ||
+            !data.EventAttributes.$MethodName === 'LogEcommerceTransaction') {
             // User didn't use logTransaction method, so just log normally
             logEvent(data);
             return;
@@ -141,25 +272,25 @@
 
         if (forwarderSettings.classicMode == 'True') {
             if (data.attrs.CurrencyCode) {
-                _gaq.push(['_set', 'currencyCode', data.attrs.CurrencyCode]);
+                _gaq.push(['_set', 'currencyCode', data.EventAttributes.CurrencyCode]);
             }
 
             _gaq.push(['_addTrans',
-                data.attrs.TransactionID,
-                data.attrs.TransactionAffiliation.toString(),
-                data.attrs.RevenueAmount.toString(),
-                data.attrs.TaxAmount.toString(),
-                data.attrs.ShippingAmount.toString()
+                data.EventAttributes.TransactionID,
+                data.EventAttributes.TransactionAffiliation.toString(),
+                data.EventAttributes.RevenueAmount.toString(),
+                data.EventAttributes.TaxAmount.toString(),
+                data.EventAttributes.ShippingAmount.toString()
             ]);
 
-            if (data.attrs.ProductName) {
+            if (data.EventAttributes.ProductName) {
                 _gaq.push(['_addItem',
-                  data.attrs.TransactionID,
-                  data.attrs.ProductSKU.toString(),
-                  data.attrs.ProductName.toString(),
-                  data.attrs.ProductCategory.toString(),
-                  data.attrs.ProductUnitPrice.toString(),
-                  data.attrs.ProductQuantity.toString()
+                  data.EventAttributes.TransactionID,
+                  data.EventAttributes.ProductSKU.toString(),
+                  data.EventAttributes.ProductName.toString(),
+                  data.EventAttributes.ProductCategory.toString(),
+                  data.EventAttributes.ProductUnitPrice.toString(),
+                  data.EventAttributes.ProductQuantity.toString()
                 ]);
             }
             _gaq.push(['_trackTrans']);
@@ -171,23 +302,23 @@
             }
 
             ga('ecommerce:addTransaction', {
-                'id': data.attrs.TransactionID,
-                'affiliation': data.attrs.TransactionAffiliation.toString(),
-                'revenue': data.attrs.RevenueAmount.toString(),
-                'shipping': data.attrs.ShippingAmount.toString(),
-                'tax': data.attrs.TaxAmount.toString(),
-                'currency': data.attrs.CurrencyCode.toString()
+                'id': data.EventAttributes.TransactionID,
+                'affiliation': data.EventAttributes.TransactionAffiliation.toString(),
+                'revenue': data.EventAttributes.RevenueAmount.toString(),
+                'shipping': data.EventAttributes.ShippingAmount.toString(),
+                'tax': data.EventAttributes.TaxAmount.toString(),
+                'currency': data.EventAttributes.CurrencyCode.toString()
             });
 
-            if (data.attrs.ProductName) {
+            if (data.EventAttributes.ProductName) {
                 ga('ecommerce:addItem', {
-                    'id': data.attrs.TransactionID,
-                    'name': data.attrs.ProductName.toString(),
-                    'sku': data.attrs.ProductSKU.toString(),
-                    'category': data.attrs.ProductCategory.toString(),
-                    'price': data.attrs.ProductUnitPrice.toString(),
-                    'quantity': data.attrs.ProductQuantity.toString(),
-                    'currency': data.attrs.CurrencyCode.toString()
+                    'id': data.EventAttributes.TransactionID,
+                    'name': data.EventAttributes.ProductName.toString(),
+                    'sku': data.EventAttributes.ProductSKU.toString(),
+                    'category': data.EventAttributes.ProductCategory.toString(),
+                    'price': data.EventAttributes.ProductUnitPrice.toString(),
+                    'quantity': data.EventAttributes.ProductQuantity.toString(),
+                    'currency': data.EventAttributes.CurrencyCode.toString()
                 });
             }
 

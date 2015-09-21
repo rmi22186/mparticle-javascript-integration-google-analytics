@@ -1,0 +1,51 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Mocha Tests</title>
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+</head>
+<body>
+    <div id="mocha"></div>
+
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/should/should.js"></script>
+    <script src="../node_modules/blanket/dist/mocha/blanket_mocha.js"></script>
+    <script src="mockhttprequest.js"></script>
+    <script>
+        var mp = function () {
+            var self = this;
+
+            this.addForwarder = function (forwarder) {
+                self.forwarder = forwarder;
+            };
+        };
+
+        var googleanalytics = function () {
+            var self = this;
+
+            this.args = [];
+
+            this.reset = function () {
+                self.args = [];
+            };
+
+            this.ga = function () {
+                self.args.push(arguments);
+            };
+        };
+
+        window.googleanalytics = new googleanalytics();
+        window.ga = window.googleanalytics.ga;
+        window._gaq = [];
+        window.mParticle = new mp();
+    </script>
+    <script src="../googleanalyticseventforwarder.js" data-cover></script>
+
+    <script>mocha.setup('bdd')</script>
+
+    <script src="tests.js"></script>
+    <script>
+        mocha.run();
+    </script>
+</body>
+</html>

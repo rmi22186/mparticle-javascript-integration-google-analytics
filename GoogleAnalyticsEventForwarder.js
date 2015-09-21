@@ -14,7 +14,8 @@
     forwarderSettings,
     reportingService,
     name = 'GoogleAnalyticsEventForwarder',
-    id = null;
+    id = null,
+    isTesting = false;
 
     function getEventTypeName(eventType) {
         return mParticle.EventType.getName(eventType);
@@ -64,7 +65,7 @@
         if (isInitialized) {
             if (forwarderSettings.useCustomerId == 'True' && type == window.mParticle.IdentityType.CustomerId) {
                 if (forwarderSettings.classicMode == 'True') {
-                    
+
 
                 }
                 else {
@@ -80,7 +81,7 @@
 
     function addEcommerceProduct(product) {
         ga('ec:addProduct', {
-            id: product.Id,
+            id: product.Sku,
             name: product.Name,
             category: product.Category,
             brand: product.Brand,
@@ -93,7 +94,7 @@
 
     function addEcommerceProductImpression(product) {
         ga('ec:addImpression', {
-            id: product.Id,
+            id: product.Sku,
             name: product.Name,
             type: 'view',
             category: product.Category,
@@ -126,11 +127,13 @@
         }
         else if (data.PromotionAction) {
             // Promotion event
-            ga('ec:addPromo', {
-                id: data.Id,
-                name: data.Name, 
-                creative: data.Creative,
-                position: data.Position
+            data.PromotionAction.PromotionList.forEach(function(promotion) {
+                ga('ec:addPromo', {
+                    id: promotion.Id,
+                    name: promotion.Name,
+                    creative: promotion.Creative,
+                    position: promotion.Position
+                });
             });
 
             if (data.PromotionAction.PromotionActionType == mParticle.PromotionType.PromotionClick) {
@@ -157,6 +160,15 @@
                 ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
             }
             else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Refund) {
+                if(data.ProductAction.ProductList.length > 0) {
+                    data.ProductAction.ProductList.forEach(function (product) {
+                        ga('ec:addProduct', {
+                            id: product.Sku,
+                            quantity: product.Quantity
+                        });
+                    });
+                }
+
                 ga('ec:setAction', 'refund', {
                     id: data.ProductAction.TransactionId
                 });
@@ -176,13 +188,9 @@
                 ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
             }
             else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Checkout) {
-                if (data.ShoppingCart && data.ShoppingCart.ProductList) {
-                    // Read products from shopping cart
-
-                    data.ShoppingCart.ProductList.forEach(function (product) {
-                        addEcommerceProduct(product);
-                    });
-                }
+                data.ProductAction.ProductList.forEach(function (product) {
+                    addEcommerceProduct(product);
+                });
 
                 ga('ec:setAction', 'checkout', {
                     'step': data.ProductAction.CheckoutStep,
@@ -271,7 +279,7 @@
         }
 
         if (forwarderSettings.classicMode == 'True') {
-            if (data.attrs.CurrencyCode) {
+            if (data.EventAttributes.CurrencyCode) {
                 _gaq.push(['_set', 'currencyCode', data.EventAttributes.CurrencyCode]);
             }
 
@@ -293,6 +301,7 @@
                   data.EventAttributes.ProductQuantity.toString()
                 ]);
             }
+
             _gaq.push(['_trackTrans']);
         }
         else {
@@ -326,37 +335,43 @@
         }
     }
 
-    function initForwarder(settings, service, moduleId) {
+    function initForwarder(settings, service, moduleId, testMode) {
         try {
             forwarderSettings = settings;
             reportingService = service;
             id = moduleId;
+            isTesting = testMode;
 
             if (forwarderSettings.classicMode == 'True') {
                 window._gaq = window._gaq || [];
-                window._gaq.push(['_setAccount', forwarderSettings.apiKey]);
 
-                if (forwarderSettings.useLocalhostCookie == 'True') {
-                    window._gaq.push(['_setDomainName', 'none']);
-                }
+                if(testMode !== true) {
+                    window._gaq.push(['_setAccount', forwarderSettings.apiKey]);
 
-                (function () {
-                    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                    if (forwarderSettings.useDisplayFeatures == 'True') {
-                        ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
-                    } else {
-                        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                    if (forwarderSettings.useLocalhostCookie == 'True') {
+                        window._gaq.push(['_setDomainName', 'none']);
                     }
-                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-                })();
+
+                    (function () {
+                        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                        if (forwarderSettings.useDisplayFeatures == 'True') {
+                            ga.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';
+                        } else {
+                            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                        }
+                        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                    })();
+                }
             }
             else {
-                (function (i, s, o, g, r, a, m) {
-                    i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
-                        (i[r].q = i[r].q || []).push(arguments)
-                    }, i[r].l = 1 * new Date(); a = s.createElement(o),
-                    m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
-                })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+                if(testMode !== true) {
+                    (function (i, s, o, g, r, a, m) {
+                        i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                            (i[r].q = i[r].q || []).push(arguments)
+                        }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                        m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+                    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+                }
 
                 if (forwarderSettings.useLocalhostCookie == 'True') {
                     ga('create', forwarderSettings.apiKey, {
@@ -373,7 +388,7 @@
 
                 if (forwarderSettings.useSecure == 'True') {
                     ga('set', 'forceSSL', true);
-                }                
+                }
             }
 
             isInitialized = true;

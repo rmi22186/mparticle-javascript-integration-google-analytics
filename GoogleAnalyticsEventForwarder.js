@@ -1,21 +1,22 @@
 ﻿(function (window) {
+    var name = 'GoogleAnalyticsEventForwarder',
+        MessageType = {
+            SessionStart: 1,
+            SessionEnd: 2,
+            PageView: 3,
+            PageEvent: 4,
+            CrashReport: 5,
+            OptOut: 6,
+            Commerce: 16
+        };
+
     var constructor = function () {
         var self = this,
-            MessageType = {
-                SessionStart: 1,
-                SessionEnd: 2,
-                PageView: 3,
-                PageEvent: 4,
-                CrashReport: 5,
-                OptOut: 6,
-                Commerce: 16
-            },
             isInitialized = false,
             isEcommerceLoaded = false,
             isEnhancedEcommerceLoaded = false,
             forwarderSettings,
             reportingService,
-            name = 'GoogleAnalyticsEventForwarder',
             id = null,
             isTesting = false;
 

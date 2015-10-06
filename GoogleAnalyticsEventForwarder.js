@@ -21,6 +21,8 @@
             trackerId = null,
             isTesting = false;
 
+        self.name = name;
+
         function createTrackerId() {
             // See http://stackoverflow.com/a/2117523/637 for details
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {

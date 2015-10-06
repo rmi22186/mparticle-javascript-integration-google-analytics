@@ -18,7 +18,21 @@
             forwarderSettings,
             reportingService,
             id = null,
+            trackerId = null,
             isTesting = false;
+
+        function createTrackerId() {
+            // See http://stackoverflow.com/a/2117523/637 for details
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function createCmd(cmd) {
+            // Prepends the specified command with the tracker id
+            return trackerId + '.' + cmd;
+        }
 
         function getEventTypeName(eventType) {
             return mParticle.EventType.getName(eventType);
@@ -68,12 +82,11 @@
             if (isInitialized) {
                 if (forwarderSettings.useCustomerId == 'True' && type == window.mParticle.IdentityType.CustomerId) {
                     if (forwarderSettings.classicMode == 'True') {
-
-
+                        // ga.js not supported currently
                     }
                     else {
-                        ga('set', 'userId', window.mParticle.generateHash(id));
-                        ga('send', 'pageview');
+                        ga(createCmd('set'), 'userId', window.mParticle.generateHash(id));
+                        ga(createCmd('send'), 'pageview');
                     }
                 }
             }
@@ -83,7 +96,7 @@
         }
 
         function addEcommerceProduct(product) {
-            ga('ec:addProduct', {
+            ga(createCmd('ec:addProduct'), {
                 id: product.Sku,
                 name: product.Name,
                 category: product.Category,
@@ -96,7 +109,7 @@
         }
 
         function addEcommerceProductImpression(product) {
-            ga('ec:addImpression', {
+            ga(createCmd('ec:addImpression'), {
                 id: product.Sku,
                 name: product.Name,
                 type: 'view',
@@ -106,15 +119,19 @@
             });
         }
 
+        function sendEcommerceEvent(type) {
+            ga(createCmd('send'), 'event', 'eCommerce', getEventTypeName(type));
+        }
+
         function logCommerce(data) {
             if (!isEnhancedEcommerceLoaded) {
-                ga('require', 'ec');
+                ga(createCmd('require'), 'ec');
                 isEnhancedEcommerceLoaded = true;
             }
 
             if (data.CurrencyCode) {
                 // Set currency code if present
-                ga('set', '&cu', data.CurrencyCode);
+                ga(createCmd('set'), '&cu', data.CurrencyCode);
             }
 
             if (data.ProductImpressions) {
@@ -126,12 +143,12 @@
                     });
                 });
 
-                ga('send', 'event', 'eCommerce', getEventTypeName(data.EventDataType));
+                sendEcommerceEvent(data.EventDataType);
             }
             else if (data.PromotionAction) {
                 // Promotion event
                 data.PromotionAction.PromotionList.forEach(function(promotion) {
-                    ga('ec:addPromo', {
+                    ga(createCmd('ec:addPromo'), {
                         id: promotion.Id,
                         name: promotion.Name,
                         creative: promotion.Creative,
@@ -140,10 +157,10 @@
                 });
 
                 if (data.PromotionAction.PromotionActionType == mParticle.PromotionType.PromotionClick) {
-                    ga('ec:setAction', 'promo_click');
+                    ga(createCmd('ec:setAction'), 'promo_click');
                 }
 
-                ga('send', 'event', 'eCommerce', getEventTypeName(data.EventDataType));
+                sendEcommerceEvent(data.EventDataType);
             }
             else if (data.ProductAction) {
                 if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Purchase) {
@@ -151,7 +168,7 @@
                         addEcommerceProduct(product);
                     });
 
-                    ga('ec:setAction', 'purchase', {
+                    ga(createCmd('ec:setAction'), 'purchase', {
                         id: data.ProductAction.TransactionId,
                         affiliation: data.ProductAction.Affiliation,
                         revenue: data.ProductAction.TotalAmount,
@@ -160,23 +177,23 @@
                         coupon: data.ProductAction.CouponCode
                     });
 
-                    ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+                    sendEcommerceEvent(data.EventDataType);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Refund) {
                     if(data.ProductAction.ProductList.length > 0) {
                         data.ProductAction.ProductList.forEach(function (product) {
-                            ga('ec:addProduct', {
+                            ga(createCmd('ec:addProduct'), {
                                 id: product.Sku,
                                 quantity: product.Quantity
                             });
                         });
                     }
 
-                    ga('ec:setAction', 'refund', {
+                    ga(createCmd('ec:setAction'), 'refund', {
                         id: data.ProductAction.TransactionId
                     });
 
-                    ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+                    sendEcommerceEvent(data.EventDataType);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ||
                     data.ProductAction.ProductActionType == mParticle.ProductActionType.RemoveFromCart) {
@@ -185,30 +202,30 @@
                         addEcommerceProduct(product);
                     });
 
-                    ga('ec:setAction',
+                    ga(createCmd('ec:setAction'),
                         data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ? 'add' : 'remove');
 
-                    ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+                    sendEcommerceEvent(data.EventDataType);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Checkout) {
                     data.ProductAction.ProductList.forEach(function (product) {
                         addEcommerceProduct(product);
                     });
 
-                    ga('ec:setAction', 'checkout', {
+                    ga(createCmd('ec:setAction'), 'checkout', {
                         'step': data.ProductAction.CheckoutStep,
                         'option': data.ProductAction.CheckoutOptions
                     });
 
-                    ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+                    sendEcommerceEvent(data.EventDataType);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Click) {
                     data.ProductAction.ProductList.forEach(function (product) {
                         addEcommerceProduct(product);
                     });
 
-                    ga('ec:setAction', 'click');
-                    ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+                    ga(createCmd('ec:setAction'), 'click');
+                    sendEcommerceEvent(data.EventDataType);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.ViewDetail) {
 
@@ -216,8 +233,8 @@
                         addEcommerceProduct(product);
                     });
 
-                    ga('ec:setAction', 'detail');
-                    ga('send', 'event', 'eCommerce', getEventTypeName(data.EventCategory));
+                    ga(createCmd('ec:setAction'), 'detail');
+                    ga(createCmd('send'), 'event', 'eCommerce', getEventTypeName(data.EventCategory));
                 }
             }
         }
@@ -227,7 +244,7 @@
                 _gaq.push(['_trackPageview']);
             }
             else {
-                ga('send', 'pageview');
+                ga(createCmd('send'), 'pageview');
             }
         }
 
@@ -263,7 +280,7 @@
                     value]);
             }
             else {
-                ga('send',
+                ga(createCmd('send'),
                     'event',
                     category,
                     data.EventName,
@@ -309,11 +326,11 @@
             }
             else {
                 if (!isEcommerceLoaded) {
-                    ga('require', 'ecommerce', 'ecommerce.js');
+                    ga(createCmd('require'), 'ecommerce', 'ecommerce.js');
                     isEcommerceLoaded = true;
                 }
 
-                ga('ecommerce:addTransaction', {
+                ga(createCmd('ecommerce:addTransaction'), {
                     'id': data.EventAttributes.TransactionID,
                     'affiliation': data.EventAttributes.TransactionAffiliation.toString(),
                     'revenue': data.EventAttributes.RevenueAmount.toString(),
@@ -323,7 +340,7 @@
                 });
 
                 if (data.EventAttributes.ProductName) {
-                    ga('ecommerce:addItem', {
+                    ga(createCmd('ecommerce:addItem'), {
                         'id': data.EventAttributes.TransactionID,
                         'name': data.EventAttributes.ProductName.toString(),
                         'sku': data.EventAttributes.ProductSKU.toString(),
@@ -334,16 +351,23 @@
                     });
                 }
 
-                ga('ecommerce:send');
+                ga(createCmd('ecommerce:send'));
             }
         }
 
-        function initForwarder(settings, service, moduleId, testMode) {
+        function initForwarder(settings, service, moduleId, testMode, tid) {
             try {
                 forwarderSettings = settings;
                 reportingService = service;
                 id = moduleId;
                 isTesting = testMode;
+
+                if (!tid) {
+                    trackerId = createTrackerId();
+                }
+                else {
+                    trackerId = tid;
+                }
 
                 if (forwarderSettings.classicMode == 'True') {
                     window._gaq = window._gaq || [];
@@ -378,19 +402,20 @@
 
                     if (forwarderSettings.useLocalhostCookie == 'True') {
                         ga('create', forwarderSettings.apiKey, {
-                            'cookieDomain': 'none'
+                            'cookieDomain': 'none',
+                            'name': trackerId
                         });
                     }
                     else {
-                        ga('create', forwarderSettings.apiKey, 'auto');
+                        ga('create', forwarderSettings.apiKey, 'auto', trackerId);
                     }
 
                     if (forwarderSettings.useDisplayFeatures == 'True') {
-                        ga('require', 'displayfeatures');
+                        ga(createCmd('require'), 'displayfeatures');
                     }
 
                     if (forwarderSettings.useSecure == 'True') {
-                        ga('set', 'forceSSL', true);
+                        ga(createCmd('set'), 'forceSSL', true);
                     }
                 }
 

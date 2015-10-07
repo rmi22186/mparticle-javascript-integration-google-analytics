@@ -274,6 +274,25 @@
                 }
             }
 
+            if(data.CustomFlags) {
+                var googleCategory = data.flags["Google.Category"],
+                    googleLabel = data.flags["Google.Label"],
+                    googleValue = parseInt(data.flags["Google.Value"], 10);
+
+                if (googleCategory) {
+                    category = googleCategory;
+                }
+
+                if (googleLabel) {
+                    label = googleLabel;
+                }
+
+                // Ensure not NaN
+                if (googleValue == googleValue) {
+                    value = googleValue;
+                }
+            }
+
             if (forwarderSettings.classicMode == 'True') {
                 _gaq.push(['_trackEvent',
                     category,

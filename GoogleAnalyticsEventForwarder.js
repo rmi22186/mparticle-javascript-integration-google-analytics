@@ -8,7 +8,8 @@
             CrashReport: 5,
             OptOut: 6,
             Commerce: 16
-        };
+        },
+        trackerCount = 1;
 
     var constructor = function () {
         var self = this,
@@ -24,11 +25,7 @@
         self.name = name;
 
         function createTrackerId() {
-            // See http://stackoverflow.com/a/2117523/637 for details
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
+            return 'mpgaTracker' + trackerCount++;
         }
 
         function createCmd(cmd) {
@@ -422,7 +419,8 @@
                     }
 
                     if (forwarderSettings.useLocalhostCookie == 'True') {
-                        ga('create', forwarderSettings.apiKey, {
+                        ga('create', {
+                            'trackingId': forwarderSettings.apiKey,
                             'cookieDomain': 'none',
                             'name': trackerId
                         });

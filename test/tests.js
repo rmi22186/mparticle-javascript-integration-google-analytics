@@ -60,8 +60,8 @@ describe('Google Analytics Forwarder', function () {
             this.id = null;
             this.event = null;
 
-            this.cb = function (id, event) {
-                self.id = id;
+            this.cb = function (forwarder, event) {
+                self.id = forwarder.id;
                 self.event = event;
             };
 
@@ -107,7 +107,7 @@ describe('Google Analytics Forwarder', function () {
 
         mParticle.forwarder.init({
             useCustomerId: 'True'
-        }, reportService.cb, 1, true, 'tracker-name');
+        }, reportService.cb, true, 'tracker-name');
     });
 
     beforeEach(function() {
@@ -537,7 +537,7 @@ describe('Google Analytics Forwarder', function () {
         mParticle.forwarder.init({
             useCustomerId: 'True',
             classicMode: 'True'
-        }, reportService.cb, 1, true);
+        }, reportService.cb, true);
 
         mParticle.forwarder.process({
             EventDataType: MessageType.PageEvent,

@@ -33,7 +33,6 @@
             isEnhancedEcommerceLoaded = false,
             forwarderSettings,
             reportingService,
-            id = null,
             trackerId = null,
             isTesting = false;
 
@@ -79,7 +78,7 @@
                     }
 
                     if (reportEvent && reportingService) {
-                        reportingService(id, event);
+                        reportingService(self, event);
                     }
 
                     return 'Successfully sent to ' + name;
@@ -388,11 +387,10 @@
             }
         }
 
-        function initForwarder(settings, service, moduleId, testMode, tid) {
+        function initForwarder(settings, service, testMode, tid) {
             try {
                 forwarderSettings = settings;
                 reportingService = service;
-                id = moduleId;
                 isTesting = testMode;
 
                 if (!tid) {

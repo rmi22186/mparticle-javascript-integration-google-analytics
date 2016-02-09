@@ -286,9 +286,9 @@
             }
 
             if(data.CustomFlags) {
-                var googleCategory = data.flags["Google.Category"],
-                    googleLabel = data.flags["Google.Label"],
-                    googleValue = parseInt(data.flags["Google.Value"], 10);
+                var googleCategory = data.CustomFlags["Google.Category"],
+                    googleLabel = data.CustomFlags["Google.Label"],
+                    googleValue = parseInt(data.CustomFlags["Google.Value"], 10);
 
                 if (googleCategory) {
                     category = googleCategory;

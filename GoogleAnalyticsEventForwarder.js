@@ -1,3 +1,4 @@
+/* eslint-disable no-undef*/
 //
 //  Copyright 2015 mParticle, Inc.
 //
@@ -33,8 +34,7 @@
             isEnhancedEcommerceLoaded = false,
             forwarderSettings,
             reportingService,
-            trackerId = null,
-            isTesting = false;
+            trackerId = null;
 
         self.name = name;
 
@@ -99,7 +99,6 @@
                     }
                     else {
                         ga(createCmd('set'), 'userId', window.mParticle.generateHash(id));
-                        ga(createCmd('send'), 'pageview');
                     }
                 }
             }
@@ -226,8 +225,8 @@
                     });
 
                     ga(createCmd('ec:setAction'), 'checkout', {
-                        'step': data.ProductAction.CheckoutStep,
-                        'option': data.ProductAction.CheckoutOptions
+                        step: data.ProductAction.CheckoutStep,
+                        option: data.ProductAction.CheckoutOptions
                     });
 
                     sendEcommerceEvent(data.EventDataType);
@@ -252,7 +251,7 @@
             }
         }
 
-        function logPageView(data) {
+        function logPageView() {
             if (forwarderSettings.classicMode == 'True') {
                 _gaq.push(['_trackPageview']);
             }
@@ -281,14 +280,14 @@
                 }
 
                 if (data.EventAttributes.category) {
-                    category = data.EventAttributes.category
+                    category = data.EventAttributes.category;
                 }
             }
 
             if(data.CustomFlags) {
-                var googleCategory = data.CustomFlags["Google.Category"],
-                    googleLabel = data.CustomFlags["Google.Label"],
-                    googleValue = parseInt(data.CustomFlags["Google.Value"], 10);
+                var googleCategory = data.CustomFlags['Google.Category'],
+                    googleLabel = data.CustomFlags['Google.Label'],
+                    googleValue = parseInt(data.CustomFlags['Google.Value'], 10);
 
                 if (googleCategory) {
                     category = googleCategory;
@@ -345,12 +344,12 @@
 
                 if (data.EventAttributes.ProductName) {
                     _gaq.push(['_addItem',
-                      data.EventAttributes.TransactionID,
-                      data.EventAttributes.ProductSKU.toString(),
-                      data.EventAttributes.ProductName.toString(),
-                      data.EventAttributes.ProductCategory.toString(),
-                      data.EventAttributes.ProductUnitPrice.toString(),
-                      data.EventAttributes.ProductQuantity.toString()
+                        data.EventAttributes.TransactionID,
+                        data.EventAttributes.ProductSKU.toString(),
+                        data.EventAttributes.ProductName.toString(),
+                        data.EventAttributes.ProductCategory.toString(),
+                        data.EventAttributes.ProductUnitPrice.toString(),
+                        data.EventAttributes.ProductQuantity.toString()
                     ]);
                 }
 
@@ -363,23 +362,23 @@
                 }
 
                 ga(createCmd('ecommerce:addTransaction'), {
-                    'id': data.EventAttributes.TransactionID,
-                    'affiliation': data.EventAttributes.TransactionAffiliation.toString(),
-                    'revenue': data.EventAttributes.RevenueAmount.toString(),
-                    'shipping': data.EventAttributes.ShippingAmount.toString(),
-                    'tax': data.EventAttributes.TaxAmount.toString(),
-                    'currency': data.EventAttributes.CurrencyCode.toString()
+                    id: data.EventAttributes.TransactionID,
+                    affiliation: data.EventAttributes.TransactionAffiliation.toString(),
+                    revenue: data.EventAttributes.RevenueAmount.toString(),
+                    shipping: data.EventAttributes.ShippingAmount.toString(),
+                    tax: data.EventAttributes.TaxAmount.toString(),
+                    currency: data.EventAttributes.CurrencyCode.toString()
                 });
 
                 if (data.EventAttributes.ProductName) {
                     ga(createCmd('ecommerce:addItem'), {
-                        'id': data.EventAttributes.TransactionID,
-                        'name': data.EventAttributes.ProductName.toString(),
-                        'sku': data.EventAttributes.ProductSKU.toString(),
-                        'category': data.EventAttributes.ProductCategory.toString(),
-                        'price': data.EventAttributes.ProductUnitPrice.toString(),
-                        'quantity': data.EventAttributes.ProductQuantity.toString(),
-                        'currency': data.EventAttributes.CurrencyCode.toString()
+                        id: data.EventAttributes.TransactionID,
+                        name: data.EventAttributes.ProductName.toString(),
+                        sku: data.EventAttributes.ProductSKU.toString(),
+                        category: data.EventAttributes.ProductCategory.toString(),
+                        price: data.EventAttributes.ProductUnitPrice.toString(),
+                        quantity: data.EventAttributes.ProductQuantity.toString(),
+                        currency: data.EventAttributes.CurrencyCode.toString()
                     });
                 }
 
@@ -425,17 +424,17 @@
                     if(testMode !== true) {
                         (function (i, s, o, g, r, a, m) {
                             i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
-                                (i[r].q = i[r].q || []).push(arguments)
+                                (i[r].q = i[r].q || []).push(arguments);
                             }, i[r].l = 1 * new Date(); a = s.createElement(o),
-                            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+                            m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m);
                         })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
                     }
 
                     if (forwarderSettings.useLocalhostCookie == 'True') {
                         ga('create', {
-                            'trackingId': forwarderSettings.apiKey,
-                            'cookieDomain': 'none',
-                            'name': trackerId
+                            trackingId: forwarderSettings.apiKey,
+                            cookieDomain: 'none',
+                            name: trackerId
                         });
                     }
                     else {

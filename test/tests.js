@@ -1,3 +1,5 @@
+/* eslint-disable no-undef*/
+
 describe('Google Analytics Forwarder', function () {
     var MessageType = {
             SessionStart: 1,
@@ -34,7 +36,7 @@ describe('Google Analytics Forwarder', function () {
             Purchase: 7,
             Refund: 8,
             AddToWishlist: 9,
-            RemoveFromWishlist: 10,
+            RemoveFromWishlist: 10
         },
         IdentityType = {
             Other: 0,
@@ -52,7 +54,7 @@ describe('Google Analytics Forwarder', function () {
         PromotionActionType = {
             Unknown: 0,
             PromotionView: 1,
-            PromotionClick: 2,
+            PromotionClick: 2
         },
         ReportingService = function () {
             var self = this;
@@ -66,7 +68,7 @@ describe('Google Analytics Forwarder', function () {
             };
 
             this.reset = function () {
-                this.id = null
+                this.id = null;
                 this.event = null;
             };
         },
@@ -89,7 +91,7 @@ describe('Google Analytics Forwarder', function () {
             name = name.toString().toLowerCase();
 
             if (Array.prototype.reduce) {
-                return name.split("").reduce(function (a, b) { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0);
+                return name.split('').reduce(function (a, b) { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0);
             }
 
             if (name.length === 0) {

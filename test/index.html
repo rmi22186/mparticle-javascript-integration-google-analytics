@@ -7,17 +7,15 @@
 <body>
     <div id="mocha"></div>
 
+    <script src="https://rawgit.com/mParticle/mparticle-sdk-javascript/master/mparticle.js"></script>
     <script src="../node_modules/mocha/mocha.js"></script>
     <script src="../node_modules/should/should.js"></script>
     <script src="../node_modules/blanket/dist/mocha/blanket_mocha.js"></script>
     <script src="mockhttprequest.js"></script>
     <script>
-        var mp = function () {
-            var self = this;
 
-            this.addForwarder = function (forwarder) {
-                self.forwarder = new forwarder.constructor();
-            };
+        window.mParticle.addForwarder = function (forwarder) {
+            window.mParticle.forwarder = new forwarder.constructor();
         };
 
         var googleanalytics = function () {
@@ -37,7 +35,6 @@
         window.googleanalytics = new googleanalytics();
         window.ga = window.googleanalytics.ga;
         window._gaq = [];
-        window.mParticle = new mp();
     </script>
     <script src="../googleanalyticseventforwarder.js" data-cover></script>
 

@@ -210,7 +210,7 @@
                     });
                 });
 
-                sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics);
+                sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics);
             }
             else if (data.PromotionAction) {
                 // Promotion event

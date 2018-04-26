@@ -107,7 +107,7 @@
 
                 try {
                     if (event.EventDataType == MessageType.PageView) {
-                        logPageView(event);
+                        logPageView(outputDimensionsAndMetrics);
                         reportEvent = true;
                     }
                     else if (event.EventDataType == MessageType.Commerce) {

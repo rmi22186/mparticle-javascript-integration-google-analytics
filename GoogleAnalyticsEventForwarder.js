@@ -25,7 +25,11 @@
             OptOut: 6,
             Commerce: 16
         },
-        trackerCount = 1;
+        trackerCount = 1,
+        NON_INTERACTION_FLAG = 'Google.NonInteraction',
+        CATEGORY = 'Google.Category',
+        LABEL = 'Google.Label',
+        VALUE = 'Google.Value';
 
     var constructor = function() {
         var self = this,
@@ -96,6 +100,12 @@
             }
         }
 
+        function applyCustomFlags(flags, outputDimensionsAndMetrics) {
+            if (flags.hasOwnProperty(NON_INTERACTION_FLAG)) {
+                outputDimensionsAndMetrics['nonInteraction'] = flags[NON_INTERACTION_FLAG];
+            }
+        }
+
         function processEvent(event) {
             var outputDimensionsAndMetrics = {};
             var reportEvent = false;
@@ -104,6 +114,10 @@
                 event.ExpandedEventCount = 0;
 
                 applyCustomDimensionsAndMetrics(event, outputDimensionsAndMetrics);
+
+                if (event.CustomFlags && Object.keys(event.CustomFlags).length) {
+                    applyCustomFlags(event.CustomFlags, outputDimensionsAndMetrics);
+                }
 
                 try {
                     if (event.EventDataType == MessageType.PageView) {
@@ -350,9 +364,9 @@
             }
 
             if(data.CustomFlags) {
-                var googleCategory = data.CustomFlags['Google.Category'],
-                    googleLabel = data.CustomFlags['Google.Label'],
-                    googleValue = parseInt(data.CustomFlags['Google.Value'], 10);
+                var googleCategory = data.CustomFlags[CATEGORY],
+                    googleLabel = data.CustomFlags[LABEL],
+                    googleValue = parseInt(data.CustomFlags[VALUE], 10);
 
                 if (googleCategory) {
                     category = googleCategory;

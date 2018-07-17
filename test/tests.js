@@ -258,6 +258,29 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[1][4].should.have.property('metric1', 1);
         window.googleanalytics.args[1][4].should.have.property('metric2', 15);
         window.googleanalytics.args[1][4].should.have.property('metric3', 3);
+        done();
+    });
+
+    it('should log events as non-interaction or interaction when provided with flag', function(done) {
+        mParticle.forwarder.process({
+            EventDataType: MessageType.Commerce,
+            PromotionAction: {
+                PromotionActionType: PromotionActionType.PromotionView,
+                PromotionList: [
+                    {
+                        Id: 12345,
+                        Creative: 'my creative',
+                        Name: 'Test promotion',
+                        Position: 3
+                    }
+                ]
+            },
+            CustomFlags: {
+                'Google.NonInteraction': true
+            }
+        });
+
+        window.googleanalytics.args[1][4].should.have.property('nonInteraction', true);
 
         done();
     });

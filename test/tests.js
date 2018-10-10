@@ -126,6 +126,25 @@ describe('Google Analytics Forwarder', function () {
         window._gaq = [];
     });
 
+    it('should change page name for custom flag', function(done) {
+        mParticle.forwarder.process({
+            EventDataType: MessageType.PageView,
+            EventName: 'Test Page Event',
+            EventAttributes: {
+                anything: 'foo'
+            },
+            CustomFlags: {
+                'Google.Page': 'foo page'
+            }
+        });
+
+        window.googleanalytics.args[0][0].should.equal('tracker-name.set');
+        window.googleanalytics.args[0][1].should.equal('page');
+        window.googleanalytics.args[0][2].should.equal('foo page');
+
+        done();
+    });
+
     it('should log custom dimensions and custom event with an event log', function(done) {
         mParticle.forwarder.process({
             EventDataType: MessageType.PageEvent,

@@ -29,6 +29,7 @@
         NON_INTERACTION_FLAG = 'Google.NonInteraction',
         CATEGORY = 'Google.Category',
         LABEL = 'Google.Label',
+        PAGE = 'Google.Page',
         VALUE = 'Google.Value';
 
     var constructor = function() {
@@ -121,7 +122,7 @@
 
                 try {
                     if (event.EventDataType == MessageType.PageView) {
-                        logPageView(outputDimensionsAndMetrics);
+                        logPageView(event, outputDimensionsAndMetrics);
                         reportEvent = true;
                     }
                     else if (event.EventDataType == MessageType.Commerce) {
@@ -330,11 +331,14 @@
             }
         }
 
-        function logPageView(outputDimensionsAndMetrics) {
+        function logPageView(event, outputDimensionsAndMetrics) {
             if (forwarderSettings.classicMode == 'True') {
                 _gaq.push(['_trackPageview']);
             }
             else {
+                if (event.CustomFlags && event.CustomFlags[PAGE]) {
+                    ga(createCmd('set'), 'page', event.CustomFlags[PAGE]);
+                }
                 ga(createCmd('send'), 'pageview', outputDimensionsAndMetrics);
             }
         }

@@ -548,7 +548,7 @@
                             } else if (dimension.maptype === 'UserAttributeClass.Name') {
                                 checkForDuplicateMapping(dimension, userLevelMap);
                                 userLevelMap['customDimensions'][formatDimensionOrMetric(dimension.value)] = dimension.map;
-                            } else if (dimension.maptype === 'ProductAttributeClass.Name') {
+                            } else if (dimension.maptype === 'ProductAttributeSelector.Name') {
                                 checkForDuplicateMapping(dimension, productLevelMap);
                                 productLevelMap['customDimensions'][formatDimensionOrMetric(dimension.value)] = dimension.map;
                             }
@@ -564,7 +564,7 @@
                             } else if (metric.maptype === 'UserAttributeClass.Name') {
                                 checkForDuplicateMapping(metric, userLevelMap);
                                 userLevelMap['customMetrics'][formatDimensionOrMetric(metric.value)] = metric.map;
-                            } else if (metric.maptype === 'ProductAttributeClass.Name') {
+                            } else if (metric.maptype === 'ProductAttributeSelector.Name') {
                                 checkForDuplicateMapping(metric, productLevelMap);
                                 productLevelMap['customMetrics'][formatDimensionOrMetric(metric.value)] = metric.map;
                             }

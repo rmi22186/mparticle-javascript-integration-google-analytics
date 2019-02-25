@@ -107,7 +107,9 @@ describe('Google Analytics Forwarder', function () {
 
             return hash;
         };
+    });
 
+    beforeEach(function() {
         mParticle.forwarder.init({
             useCustomerId: 'True',
             customDimensions:'[{ \
@@ -119,11 +121,22 @@ describe('Google Analytics Forwarder', function () {
                 {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Metric 1&quot;,&quot;map&quot;:&quot;levels&quot;},{&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Metric 2&quot;,&quot;map&quot;:&quot;shots&quot;},{&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Metric 3&quot;,&quot;map&quot;:&quot;players&quot;}, \
                 {&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 1&quot;,&quot;map&quot;:&quot;levels&quot;},{&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 2&quot;,&quot;map&quot;:&quot;shots&quot;},{&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 3&quot;,&quot;map&quot;:&quot;players&quot;}]'
         }, reportService.cb, true, 'tracker-name');
-    });
-
-    beforeEach(function() {
         window.googleanalytics.reset();
         window._gaq = [];
+    });
+
+    it('should initialize with ampClientId if clientIdentificationType is AMP', function(done) {
+        window.googleanalytics.reset();
+
+        mParticle.forwarder.init({
+            clientIdentificationType: 'AMP'
+        }, reportService.cb, true, 'tracker-name');
+
+        window.googleanalytics.args[0][0].should.equal('create');
+        window.googleanalytics.args[0][1].should.have.properties('name', 'trackingId', 'useAmpClientId');
+        window.googleanalytics.args[0][1].should.have.property('useAmpClientId', true);
+
+        done();
     });
 
     it('should change page name for custom flag', function(done) {

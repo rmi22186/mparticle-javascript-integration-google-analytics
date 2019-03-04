@@ -30,7 +30,8 @@
         CATEGORY = 'Google.Category',
         LABEL = 'Google.Label',
         PAGE = 'Google.Page',
-        VALUE = 'Google.Value';
+        VALUE = 'Google.Value',
+        HITTYPE = 'Google.HitType';
 
     var constructor = function() {
         var self = this,
@@ -122,22 +123,17 @@
 
                 try {
                     if (event.EventDataType == MessageType.PageView) {
-                        logPageView(event, outputDimensionsAndMetrics);
+                        logPageView(event, outputDimensionsAndMetrics, event.CustomFlags);
                         reportEvent = true;
                     }
                     else if (event.EventDataType == MessageType.Commerce) {
-                        logCommerce(event, outputDimensionsAndMetrics);
+                        logCommerce(event, outputDimensionsAndMetrics, event.CustomFlags);
                         reportEvent = true;
                     }
                     else if (event.EventDataType == MessageType.PageEvent) {
                         reportEvent = true;
 
-                        if (event.EventCategory == window.mParticle.EventType.Transaction) {
-                            logTransaction(event, outputDimensionsAndMetrics);
-                        }
-                        else {
-                            logEvent(event, outputDimensionsAndMetrics);
-                        }
+                        logEvent(event, outputDimensionsAndMetrics, event.CustomFlags);
                     }
 
                     if (reportEvent && reportingService) {
@@ -202,11 +198,11 @@
             });
         }
 
-        function sendEcommerceEvent(type, outputDimensionsAndMetrics) {
-            ga(createCmd('send'), 'event', 'eCommerce', getEventTypeName(type), outputDimensionsAndMetrics);
+        function sendEcommerceEvent(type, outputDimensionsAndMetrics, customFlags) {
+            ga(createCmd('send'), customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'event', 'eCommerce', getEventTypeName(type), outputDimensionsAndMetrics);
         }
 
-        function logCommerce(data, outputDimensionsAndMetrics) {
+        function logCommerce(data, outputDimensionsAndMetrics, customFlags) {
             if (!isEnhancedEcommerceLoaded) {
                 ga(createCmd('require'), 'ec');
                 isEnhancedEcommerceLoaded = true;
@@ -225,7 +221,7 @@
                     });
                 });
 
-                sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics);
+                sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
             }
             else if (data.PromotionAction) {
                 // Promotion event
@@ -242,7 +238,7 @@
                     ga(createCmd('ec:setAction'), 'promo_click');
                 }
 
-                sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics);
+                sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
             }
             else if (data.ProductAction) {
                 if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Purchase) {
@@ -261,7 +257,7 @@
                         coupon: data.ProductAction.CouponCode
                     });
 
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics);
+                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Refund) {
                     if (data.ProductAction.ProductList.length) {
@@ -279,7 +275,7 @@
                         id: data.ProductAction.TransactionId
                     });
 
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics);
+                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ||
                     data.ProductAction.ProductActionType == mParticle.ProductActionType.RemoveFromCart) {
@@ -292,7 +288,7 @@
                     ga(createCmd('ec:setAction'),
                         data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ? 'add' : 'remove');
 
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics);
+                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Checkout) {
                     data.ProductAction.ProductList.forEach(function(product) {
@@ -306,7 +302,7 @@
                         option: data.ProductAction.CheckoutOptions
                     });
 
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics);
+                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Click) {
                     data.ProductAction.ProductList.forEach(function(product) {
@@ -316,7 +312,7 @@
                     });
 
                     ga(createCmd('ec:setAction'), 'click');
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics);
+                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.ViewDetail) {
                     data.ProductAction.ProductList.forEach(function(product) {
@@ -326,12 +322,12 @@
                     });
 
                     ga(createCmd('ec:setAction'), 'detail');
-                    ga(createCmd('send'), 'event', 'eCommerce', getEventTypeName(data.EventCategory), outputDimensionsAndMetrics);
+                    ga(createCmd('send'), customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'event', 'eCommerce', getEventTypeName(data.EventCategory), outputDimensionsAndMetrics);
                 }
             }
         }
 
-        function logPageView(event, outputDimensionsAndMetrics) {
+        function logPageView(event, outputDimensionsAndMetrics, customFlags) {
             if (forwarderSettings.classicMode == 'True') {
                 _gaq.push(['_trackPageview']);
             }
@@ -339,11 +335,11 @@
                 if (event.CustomFlags && event.CustomFlags[PAGE]) {
                     ga(createCmd('set'), 'page', event.CustomFlags[PAGE]);
                 }
-                ga(createCmd('send'), 'pageview', outputDimensionsAndMetrics);
+                ga(createCmd('send'), customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'pageview', outputDimensionsAndMetrics);
             }
         }
 
-        function logEvent(data, outputDimensionsAndMetrics) {
+        function logEvent(data, outputDimensionsAndMetrics, customFlags) {
             var label = '',
                 category = getEventTypeName(data.EventCategory),
                 value;
@@ -395,78 +391,12 @@
             }
             else {
                 ga(createCmd('send'),
-                    'event',
+                    customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'event',
                     category,
                     data.EventName,
                     label,
                     value,
                     outputDimensionsAndMetrics);
-            }
-        }
-
-        function logTransaction(data, outputDimensionsAndMetrics) {
-            if (!data.EventAttributes ||
-                !data.EventAttributes.$MethodName ||
-                !data.EventAttributes.$MethodName === 'LogEcommerceTransaction') {
-                // User didn't use logTransaction method, so just log normally
-                logEvent(data, outputDimensionsAndMetrics);
-                return;
-            }
-
-            if (forwarderSettings.classicMode == 'True') {
-                if (data.EventAttributes.CurrencyCode) {
-                    _gaq.push(['_set', 'currencyCode', data.EventAttributes.CurrencyCode]);
-                }
-
-                _gaq.push(['_addTrans',
-                    data.EventAttributes.TransactionID,
-                    data.EventAttributes.TransactionAffiliation.toString(),
-                    data.EventAttributes.RevenueAmount.toString(),
-                    data.EventAttributes.TaxAmount.toString(),
-                    data.EventAttributes.ShippingAmount.toString()
-                ]);
-
-                if (data.EventAttributes.ProductName) {
-                    _gaq.push(['_addItem',
-                        data.EventAttributes.TransactionID,
-                        data.EventAttributes.ProductSKU.toString(),
-                        data.EventAttributes.ProductName.toString(),
-                        data.EventAttributes.ProductCategory.toString(),
-                        data.EventAttributes.ProductUnitPrice.toString(),
-                        data.EventAttributes.ProductQuantity.toString()
-                    ]);
-                }
-
-                _gaq.push(['_trackTrans']);
-            }
-            else {
-                if (!isEcommerceLoaded) {
-                    ga(createCmd('require'), 'ecommerce', 'ecommerce.js');
-                    isEcommerceLoaded = true;
-                }
-
-                ga(createCmd('ecommerce:addTransaction'), {
-                    id: data.EventAttributes.TransactionID,
-                    affiliation: data.EventAttributes.TransactionAffiliation.toString(),
-                    revenue: data.EventAttributes.RevenueAmount.toString(),
-                    shipping: data.EventAttributes.ShippingAmount.toString(),
-                    tax: data.EventAttributes.TaxAmount.toString(),
-                    currency: data.EventAttributes.CurrencyCode.toString()
-                });
-
-                if (data.EventAttributes.ProductName) {
-                    ga(createCmd('ecommerce:addItem'), {
-                        id: data.EventAttributes.TransactionID,
-                        name: data.EventAttributes.ProductName.toString(),
-                        sku: data.EventAttributes.ProductSKU.toString(),
-                        category: data.EventAttributes.ProductCategory.toString(),
-                        price: data.EventAttributes.ProductUnitPrice.toString(),
-                        quantity: data.EventAttributes.ProductQuantity.toString(),
-                        currency: data.EventAttributes.CurrencyCode.toString()
-                    });
-                }
-
-                ga(createCmd('ecommerce:send'), outputDimensionsAndMetrics);
             }
         }
 

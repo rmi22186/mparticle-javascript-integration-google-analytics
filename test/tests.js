@@ -158,8 +158,8 @@ describe('Google Analytics Forwarder', function () {
         done();
     });
 
-    it('should log custom dimensions and custom event with an event log', function(done) {
-        mParticle.forwarder.process({
+    it('should log custom dimensions and custom event with an event log and custom flag', function(done) {
+        var event = {
             EventDataType: MessageType.PageEvent,
             EventName: 'Test Event',
             EventAttributes: {
@@ -173,7 +173,9 @@ describe('Google Analytics Forwarder', function () {
                 shots: 15,
                 players: 3
             }
-        });
+        };
+
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.send');
         window.googleanalytics.args[0][1].should.equal('event');
@@ -188,11 +190,18 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[0][6].should.have.property('metric2', 15);
         window.googleanalytics.args[0][6].should.have.property('metric3', 3);
 
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = { 'Google.HitType': 'abcdef'};
+
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[0][1].should.equal('abcdef');
+
         done();
     });
 
     it('should log custom dimensions and metrics with a product purchase', function(done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.Commerce,
             ProductAction: {
                 ProductActionType: ProductActionType.Purchase,
@@ -223,7 +232,8 @@ describe('Google Analytics Forwarder', function () {
                 ShippingAmount: 10,
                 CouponCode: null
             }
-        });
+        };
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[1][0].should.equal('tracker-name.ec:addProduct');
         window.googleanalytics.args[1][1].should.have.property('id', '12345');
@@ -255,6 +265,11 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[3][2].should.equal('eCommerce');
         window.googleanalytics.args[3][3].should.equal('blahblah');
 
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = { 'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[2][1].should.equal('abcdef');
 
         done();
     });
@@ -338,12 +353,19 @@ describe('Google Analytics Forwarder', function () {
     });
 
     it('should log page view', function(done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.PageView
-        });
+        };
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.send');
         window.googleanalytics.args[0][1].should.equal('pageview');
+
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = { 'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[0][1].should.equal('abcdef');
 
         done();
     });
@@ -402,7 +424,7 @@ describe('Google Analytics Forwarder', function () {
     });
 
     it('should log refund', function(done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.Commerce,
             ProductAction: {
                 ProductActionType: ProductActionType.Refund,
@@ -414,7 +436,8 @@ describe('Google Analytics Forwarder', function () {
                 ],
                 TransactionId: 123
             }
-        });
+        };
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.ec:addProduct');
         window.googleanalytics.args[0][1].should.have.property('id', '12345');
@@ -429,11 +452,17 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[2][2].should.equal('eCommerce');
         window.googleanalytics.args[2][3].should.equal('blahblah');
 
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = { 'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[2][1].should.equal('abcdef');
+
         done();
     });
 
     it('should log add to cart', function(done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.Commerce,
             ProductAction: {
                 ProductActionType: ProductActionType.AddToCart,
@@ -444,7 +473,8 @@ describe('Google Analytics Forwarder', function () {
                     }
                 ]
             }
-        });
+        };
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.ec:addProduct');
         window.googleanalytics.args[0][1].should.have.property('id', '12345');
@@ -458,11 +488,17 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[2][2].should.equal('eCommerce');
         window.googleanalytics.args[2][3].should.equal('blahblah');
 
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = { 'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[2][1].should.equal('abcdef');
+
         done();
     });
 
     it('should log remove from cart', function(done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.Commerce,
             ProductAction: {
                 ProductActionType: ProductActionType.RemoveFromCart,
@@ -473,7 +509,9 @@ describe('Google Analytics Forwarder', function () {
                     }
                 ]
             }
-        });
+        };
+
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.ec:addProduct');
         window.googleanalytics.args[0][1].should.have.property('id', '12345');
@@ -487,11 +525,17 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[2][2].should.equal('eCommerce');
         window.googleanalytics.args[2][3].should.equal('blahblah');
 
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = { 'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[2][1].should.equal('abcdef');
+
         done();
     });
 
     it('should log checkout', function (done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.Commerce,
             ProductAction: {
                 ProductActionType: ProductActionType.Checkout,
@@ -504,7 +548,8 @@ describe('Google Analytics Forwarder', function () {
                 CheckoutStep: 1,
                 CheckoutOptions: 'Visa'
             }
-        });
+        };
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.ec:addProduct');
         window.googleanalytics.args[0][1].should.have.property('id', '12345');
@@ -520,11 +565,17 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[2][2].should.equal('eCommerce');
         window.googleanalytics.args[2][3].should.equal('blahblah');
 
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = { 'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[2][1].should.equal('abcdef');
+
         done();
     });
 
     it('should log product click', function (done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.Commerce,
             ProductAction: {
                 ProductActionType: ProductActionType.Click,
@@ -535,7 +586,8 @@ describe('Google Analytics Forwarder', function () {
                     }
                 ]
             }
-        });
+        };
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.ec:addProduct');
         window.googleanalytics.args[0][1].should.have.property('id', '12345');
@@ -549,11 +601,17 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[2][2].should.equal('eCommerce');
         window.googleanalytics.args[2][3].should.equal('blahblah');
 
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = { 'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[2][1].should.equal('abcdef');
+
         done();
     });
 
     it('it should log product view detail', function(done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.Commerce,
             ProductAction: {
                 ProductActionType: ProductActionType.ViewDetail,
@@ -564,7 +622,9 @@ describe('Google Analytics Forwarder', function () {
                     }
                 ]
             }
-        });
+        };
+
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.ec:addProduct');
         window.googleanalytics.args[0][1].should.have.property('id', '12345');
@@ -578,11 +638,17 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[2][2].should.equal('eCommerce');
         window.googleanalytics.args[2][3].should.equal('blahblah');
 
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = { 'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[2][1].should.equal('abcdef');
+
         done();
     });
 
     it('it should log product impressions', function(done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.Commerce,
             ProductImpressions: [
                 {
@@ -596,7 +662,8 @@ describe('Google Analytics Forwarder', function () {
                     }]
                 }
             ]
-        });
+        };
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.ec:addImpression');
         window.googleanalytics.args[0][1].should.have.property('id', '12345');
@@ -609,6 +676,12 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[1][1].should.equal('event');
         window.googleanalytics.args[1][2].should.equal('eCommerce');
         window.googleanalytics.args[1][3].should.equal('blahblah');
+
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = {'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[1][1].should.equal('abcdef');
 
         done();
     });
@@ -624,7 +697,7 @@ describe('Google Analytics Forwarder', function () {
     });
 
     it('should log promotion view', function(done) {
-        mParticle.forwarder.process({
+        var event = {
             EventDataType: MessageType.Commerce,
             PromotionAction: {
                 PromotionActionType: PromotionActionType.PromotionView,
@@ -637,7 +710,8 @@ describe('Google Analytics Forwarder', function () {
                     }
                 ]
             }
-        });
+        };
+        mParticle.forwarder.process(event);
 
         window.googleanalytics.args[0][0].should.equal('tracker-name.ec:addPromo');
         window.googleanalytics.args[0][1].should.have.property('id', 12345);
@@ -649,6 +723,12 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[1][1].should.equal('event');
         window.googleanalytics.args[1][2].should.equal('eCommerce');
         window.googleanalytics.args[1][3].should.equal('blahblah');
+
+        window.googleanalytics.args = [];
+
+        event.CustomFlags = {'Google.HitType': 'abcdef'};
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[1][1].should.equal('abcdef');
 
         done();
     });
@@ -682,87 +762,6 @@ describe('Google Analytics Forwarder', function () {
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
         window.googleanalytics.args[2][3].should.equal('blahblah');
-
-        done();
-    });
-
-    it('should log transaction', function(done) {
-        mParticle.forwarder.process({
-            EventDataType: MessageType.PageEvent,
-            EventCategory: EventType.Transaction,
-            EventAttributes: {
-                $MethodName: 'LogEcommerceTransaction',
-                ProductName: 'iPhone',
-                ProductSKU: '12345',
-                ProductUnitPrice: 400,
-                ProductQuantity: 1,
-                ProductCategory: 'Phones',
-                RevenueAmount: 500,
-                TaxAmount: 40,
-                ShippingAmount: 60,
-                CurrencyCode: 'USD',
-                TransactionAffiliation: 'affiliation',
-                TransactionID: 1234567
-            }
-        });
-
-        window.googleanalytics.args[0][0].should.equal('tracker-name.require');
-        window.googleanalytics.args[0][1].should.equal('ecommerce');
-
-        window.googleanalytics.args[1][0].should.equal('tracker-name.ecommerce:addTransaction');
-        window.googleanalytics.args[1][1].should.have.property('id', 1234567);
-        window.googleanalytics.args[1][1].should.have.property('affiliation', 'affiliation');
-        window.googleanalytics.args[1][1].should.have.property('revenue', '500');
-        window.googleanalytics.args[1][1].should.have.property('shipping', '60');
-        window.googleanalytics.args[1][1].should.have.property('tax', '40');
-        window.googleanalytics.args[1][1].should.have.property('currency', 'USD');
-
-        window.googleanalytics.args[2][0].should.equal('tracker-name.ecommerce:addItem');
-        window.googleanalytics.args[2][1].should.have.property('id', 1234567);
-        window.googleanalytics.args[2][1].should.have.property('name', 'iPhone');
-        window.googleanalytics.args[2][1].should.have.property('sku', '12345');
-        window.googleanalytics.args[2][1].should.have.property('category', 'Phones');
-        window.googleanalytics.args[2][1].should.have.property('price', '400');
-        window.googleanalytics.args[2][1].should.have.property('quantity', '1');
-        window.googleanalytics.args[2][1].should.have.property('currency', 'USD');
-
-        window.googleanalytics.args[3][0].should.equal('tracker-name.ecommerce:send');
-
-        done();
-    });
-
-    it('should log transaction in classic mode', function(done) {
-        mParticle.forwarder.init({
-            useCustomerId: 'True',
-            classicMode: 'True'
-        }, reportService.cb, true);
-
-        mParticle.forwarder.process({
-            EventDataType: MessageType.PageEvent,
-            EventCategory: EventType.Transaction,
-            EventAttributes: {
-                $MethodName: 'LogEcommerceTransaction',
-                ProductName: 'iPhone',
-                ProductSKU: '12345',
-                ProductUnitPrice: 400,
-                ProductQuantity: 1,
-                ProductCategory: 'Phones',
-                RevenueAmount: 500,
-                TaxAmount: 40,
-                ShippingAmount: 60,
-                CurrencyCode: 'USD',
-                TransactionAffiliation: 'affiliation',
-                TransactionID: 1234567
-            }
-        });
-
-        window._gaq[0][0].should.equal('_set');
-        window._gaq[0][1].should.equal('currencyCode');
-        window._gaq[0][2].should.equal('USD');
-
-        window._gaq[1][0].should.equal('_addTrans');
-
-        window._gaq[2][0].should.equal('_addItem');
 
         done();
     });

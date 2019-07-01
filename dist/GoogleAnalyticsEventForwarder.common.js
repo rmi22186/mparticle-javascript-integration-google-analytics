@@ -1,3 +1,16 @@
+Object.defineProperty(exports, '__esModule', { value: true });
+
+/*!
+ * isobject <https://github.com/jonschlinkert/isobject>
+ *
+ * Copyright (c) 2014-2017, Jon Schlinkert.
+ * Released under the MIT License.
+ */
+
+function isObject(val) {
+  return val != null && typeof val === 'object' && Array.isArray(val) === false;
+}
+
 /* eslint-disable no-undef*/
 //
 //  Copyright 2019 mParticle, Inc.
@@ -14,7 +27,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-    var isobject = require('isobject');
+    
 
     var name = 'GoogleAnalyticsEventForwarder',
         moduleId = 6,
@@ -38,7 +51,6 @@
     var constructor = function() {
         var self = this,
             isInitialized = false,
-            isEcommerceLoaded = false,
             isEnhancedEcommerceLoaded = false,
             forwarderSettings,
             reportingService,
@@ -155,9 +167,7 @@
         function setUserIdentity(id, type) {
             if (isInitialized) {
                 if (forwarderSettings.useCustomerId == 'True' && type == window.mParticle.IdentityType.CustomerId) {
-                    if (forwarderSettings.classicMode == 'True') {
-                        // ga.js not supported currently
-                    }
+                    if (forwarderSettings.classicMode == 'True') ;
                     else {
                         ga(createCmd('set'), 'userId', window.mParticle.generateHash(id));
                     }
@@ -531,12 +541,12 @@
             return;
         }
 
-        if (!isobject(config)) {
+        if (!isObject(config)) {
             window.console.log('\'config\' must be an object. You passed in a ' + typeof config);
             return;
         }
 
-        if (isobject(config.kits)) {
+        if (isObject(config.kits)) {
             config.kits[name] = {
                 constructor: constructor
             };
@@ -557,6 +567,10 @@
         });
     }
 
-    module.exports = {
+    var GoogleAnalyticsEventForwarder = {
         register: register
     };
+var GoogleAnalyticsEventForwarder_1 = GoogleAnalyticsEventForwarder.register;
+
+exports.default = GoogleAnalyticsEventForwarder;
+exports.register = GoogleAnalyticsEventForwarder_1;

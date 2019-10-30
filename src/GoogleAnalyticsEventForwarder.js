@@ -14,10 +14,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-    var isobject = require('isobject');
-
     var name = 'GoogleAnalyticsEventForwarder',
         moduleId = 6,
+        version = '2.0.1',
         MessageType = {
             SessionStart: 1,
             SessionEnd: 2,
@@ -38,7 +37,6 @@
     var constructor = function() {
         var self = this,
             isInitialized = false,
-            isEcommerceLoaded = false,
             isEnhancedEcommerceLoaded = false,
             forwarderSettings,
             reportingService,
@@ -87,18 +85,18 @@
         }
 
         function applyCustomDimensionsMetricsForSourceAttributes(attributes, targetDimensionsAndMetrics, mapLevel) {
-            for (var cdKey in mapLevel.customDimensions) {
+            for (var customDimension in mapLevel.customDimensions) {
                 for (attrName in attributes) {
-                    if (mapLevel.customDimensions[cdKey] === attrName) {
-                        targetDimensionsAndMetrics[cdKey] = attributes[attrName];
+                    if (customDimension === attrName) {
+                        targetDimensionsAndMetrics[mapLevel.customDimensions[customDimension]] = attributes[attrName];
                     }
                 }
             }
 
-            for (var cmKey in mapLevel.customMetrics) {
+            for (var customMetric in mapLevel.customMetrics) {
                 for (attrName in attributes) {
-                    if (mapLevel.customMetrics[cmKey] === attrName) {
-                        targetDimensionsAndMetrics[cmKey] = attributes[attrName];
+                    if (customMetric === attrName) {
+                        targetDimensionsAndMetrics[mapLevel.customMetrics[customMetric]] = attributes[attrName];
                     }
                 }
             }
@@ -402,13 +400,6 @@
             }
         }
 
-        function checkForDuplicateMapping(dimensionOrMetric, eventLevelMap) {
-            var existingMapper = eventLevelMap['customDimensions'][formatDimensionOrMetric(dimensionOrMetric.value)];
-            if (existingMapper) {
-                console.log('Warning: both ' + existingMapper + ' & ' + dimensionOrMetric.map + ' are mapped to ' + dimensionOrMetric.value + '. ' + dimensionOrMetric.map + ' is replacing ' + existingMapper + '. If this is a mistake, please revisit the Google Analytics settings at app.mparticle.com. Otherwise, please ignore this warning.');
-            }
-        }
-
         function initForwarder(settings, service, testMode, tid) {
             try {
                 forwarderSettings = settings;
@@ -479,14 +470,11 @@
                         var customDimensions = JSON.parse(forwarderSettings.customDimensions.replace(/&quot;/g, '\"'));
                         customDimensions.forEach(function(dimension) {
                             if (dimension.maptype === 'EventAttributeClass.Name') {
-                                checkForDuplicateMapping(dimension, eventLevelMap);
-                                eventLevelMap['customDimensions'][formatDimensionOrMetric(dimension.value)] = dimension.map;
+                                eventLevelMap['customDimensions'][dimension.map] = formatDimensionOrMetric(dimension.value);
                             } else if (dimension.maptype === 'UserAttributeClass.Name') {
-                                checkForDuplicateMapping(dimension, userLevelMap);
-                                userLevelMap['customDimensions'][formatDimensionOrMetric(dimension.value)] = dimension.map;
+                                userLevelMap['customDimensions'][dimension.map] = formatDimensionOrMetric(dimension.value);
                             } else if (dimension.maptype === 'ProductAttributeSelector.Name') {
-                                checkForDuplicateMapping(dimension, productLevelMap);
-                                productLevelMap['customDimensions'][formatDimensionOrMetric(dimension.value)] = dimension.map;
+                                productLevelMap['customDimensions'][dimension.map] = formatDimensionOrMetric(dimension.value);
                             }
                         });
                     }
@@ -495,14 +483,11 @@
                         var customMetrics = JSON.parse(forwarderSettings.customMetrics.replace(/&quot;/g, '\"'));
                         customMetrics.forEach(function(metric) {
                             if (metric.maptype === 'EventAttributeClass.Name') {
-                                checkForDuplicateMapping(metric, eventLevelMap);
-                                eventLevelMap['customMetrics'][formatDimensionOrMetric(metric.value)] = metric.map;
+                                eventLevelMap['customMetrics'][metric.map] = formatDimensionOrMetric(metric.value);
                             } else if (metric.maptype === 'UserAttributeClass.Name') {
-                                checkForDuplicateMapping(metric, userLevelMap);
-                                userLevelMap['customMetrics'][formatDimensionOrMetric(metric.value)] = metric.map;
+                                userLevelMap['customMetrics'][metric.map] = formatDimensionOrMetric(metric.value);
                             } else if (metric.maptype === 'ProductAttributeSelector.Name') {
-                                checkForDuplicateMapping(metric, productLevelMap);
-                                productLevelMap['customMetrics'][formatDimensionOrMetric(metric.value)] = metric.map;
+                                productLevelMap['customMetrics'][metric.map] = formatDimensionOrMetric(metric.value);
                             }
                         });
                     }
@@ -525,18 +510,22 @@
         return moduleId;
     }
 
+    function isObject(val) {
+        return val != null && typeof val === 'object' && Array.isArray(val) === false;
+    }
+
     function register(config) {
         if (!config) {
             window.console.log('You must pass a config object to register the kit ' + name);
             return;
         }
 
-        if (!isobject(config)) {
+        if (!isObject(config)) {
             window.console.log('\'config\' must be an object. You passed in a ' + typeof config);
             return;
         }
 
-        if (isobject(config.kits)) {
+        if (isObject(config.kits)) {
             config.kits[name] = {
                 constructor: constructor
             };
@@ -558,5 +547,8 @@
     }
 
     module.exports = {
-        register: register
+        register: register,
+        getVersion: function() {
+            return version;
+        }
     };

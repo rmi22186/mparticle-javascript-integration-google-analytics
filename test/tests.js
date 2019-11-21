@@ -10,6 +10,21 @@ describe('Google Analytics Forwarder', function() {
             OptOut: 6,
             Commerce: 16,
         },
+        CommerceEventType = {
+            ProductAddToCart: 10,
+            ProductRemoveFromCart: 11,
+            ProductCheckout: 12,
+            ProductCheckoutOption: 13,
+            ProductClick: 14,
+            ProductViewDetail: 15,
+            ProductPurchase: 16,
+            ProductRefund: 17,
+            PromotionView: 18,
+            PromotionClick: 19,
+            ProductAddToWishlist: 20,
+            ProductRemoveFromWishlist: 21,
+            ProductImpression: 22,
+        },
         EventType = {
             Unknown: 0,
             Navigation: 1,
@@ -21,8 +36,51 @@ describe('Google Analytics Forwarder', function() {
             Social: 7,
             Other: 8,
             Media: 9,
-            getName: function() {
-                return 'blahblah';
+            getName: function(id) {
+                switch (id) {
+                    case EventType.Navigation:
+                        return 'Navigation';
+                    case EventType.Location:
+                        return 'Location';
+                    case EventType.Search:
+                        return 'Search';
+                    case EventType.Transaction:
+                        return 'Transaction';
+                    case EventType.UserContent:
+                        return 'User Content';
+                    case EventType.UserPreference:
+                        return 'User Preference';
+                    case EventType.Social:
+                        return 'Social';
+                    case CommerceEventType.ProductAddToCart:
+                        return 'Product Added to Cart';
+                    case CommerceEventType.ProductAddToWishlist:
+                        return 'Product Added to Wishlist';
+                    case CommerceEventType.ProductCheckout:
+                        return 'Product Checkout';
+                    case CommerceEventType.ProductCheckoutOption:
+                        return 'Product Checkout Options';
+                    case CommerceEventType.ProductClick:
+                        return 'Product Click';
+                    case CommerceEventType.ProductImpression:
+                        return 'Product Impression';
+                    case CommerceEventType.ProductPurchase:
+                        return 'Product Purchased';
+                    case CommerceEventType.ProductRefund:
+                        return 'Product Refunded';
+                    case CommerceEventType.ProductRemoveFromCart:
+                        return 'Product Removed From Cart';
+                    case CommerceEventType.ProductRemoveFromWishlist:
+                        return 'Product Removed from Wishlist';
+                    case CommerceEventType.ProductViewDetail:
+                        return 'Product View Details';
+                    case CommerceEventType.PromotionClick:
+                        return 'Promotion Click';
+                    case CommerceEventType.PromotionView:
+                        return 'Promotion View';
+                    default:
+                        return 'Other';
+                }
             },
         },
         ProductActionType = {
@@ -77,7 +135,6 @@ describe('Google Analytics Forwarder', function() {
         reportService = new ReportingService();
 
     before(function() {
-        mParticle.init('testAPI');
         mParticle.EventType = EventType;
         mParticle.ProductActionType = ProductActionType;
         mParticle.PromotionType = PromotionActionType;
@@ -236,6 +293,7 @@ describe('Google Analytics Forwarder', function() {
     it('should log custom dimensions and metrics with a product purchase', function(done) {
         var event = {
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductPurchase,
             ProductAction: {
                 ProductActionType: ProductActionType.Purchase,
                 ProductList: [
@@ -321,7 +379,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[3][0].should.equal('tracker-name.send');
         window.googleanalytics.args[3][1].should.equal('event');
         window.googleanalytics.args[3][2].should.equal('eCommerce');
-        window.googleanalytics.args[3][3].should.equal('blahblah');
+        window.googleanalytics.args[3][3].should.equal('Product Purchased');
 
         window.googleanalytics.args = [];
 
@@ -443,6 +501,7 @@ describe('Google Analytics Forwarder', function() {
     it('should log commerce event', function(done) {
         mParticle.forwarder.process({
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductPurchase,
             ProductAction: {
                 ProductActionType: ProductActionType.Purchase,
                 ProductList: [
@@ -504,7 +563,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[2][0].should.equal('tracker-name.send');
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
-        window.googleanalytics.args[2][3].should.equal('blahblah');
+        window.googleanalytics.args[2][3].should.equal('Product Purchased');
 
         done();
     });
@@ -512,6 +571,7 @@ describe('Google Analytics Forwarder', function() {
     it('should log refund', function(done) {
         var event = {
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductRefund,
             ProductAction: {
                 ProductActionType: ProductActionType.Refund,
                 ProductList: [
@@ -540,7 +600,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[2][0].should.equal('tracker-name.send');
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
-        window.googleanalytics.args[2][3].should.equal('blahblah');
+        window.googleanalytics.args[2][3].should.equal('Product Refunded');
 
         window.googleanalytics.args = [];
 
@@ -554,6 +614,7 @@ describe('Google Analytics Forwarder', function() {
     it('should log add to cart', function(done) {
         var event = {
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductAddToCart,
             ProductAction: {
                 ProductActionType: ProductActionType.AddToCart,
                 ProductList: [
@@ -580,7 +641,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[2][0].should.equal('tracker-name.send');
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
-        window.googleanalytics.args[2][3].should.equal('blahblah');
+        window.googleanalytics.args[2][3].should.equal('Product Added to Cart');
 
         window.googleanalytics.args = [];
 
@@ -594,6 +655,7 @@ describe('Google Analytics Forwarder', function() {
     it('should log remove from cart', function(done) {
         var event = {
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductRemoveFromCart,
             ProductAction: {
                 ProductActionType: ProductActionType.RemoveFromCart,
                 ProductList: [
@@ -621,7 +683,9 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[2][0].should.equal('tracker-name.send');
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
-        window.googleanalytics.args[2][3].should.equal('blahblah');
+        window.googleanalytics.args[2][3].should.equal(
+            'Product Removed From Cart'
+        );
 
         window.googleanalytics.args = [];
 
@@ -635,6 +699,7 @@ describe('Google Analytics Forwarder', function() {
     it('should log checkout', function(done) {
         var event = {
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductCheckout,
             ProductAction: {
                 ProductActionType: ProductActionType.Checkout,
                 ProductList: [
@@ -668,7 +733,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[2][0].should.equal('tracker-name.send');
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
-        window.googleanalytics.args[2][3].should.equal('blahblah');
+        window.googleanalytics.args[2][3].should.equal('Product Checkout');
 
         window.googleanalytics.args = [];
 
@@ -682,6 +747,7 @@ describe('Google Analytics Forwarder', function() {
     it('should log product click', function(done) {
         var event = {
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductClick,
             ProductAction: {
                 ProductActionType: ProductActionType.Click,
                 ProductList: [
@@ -708,7 +774,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[2][0].should.equal('tracker-name.send');
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
-        window.googleanalytics.args[2][3].should.equal('blahblah');
+        window.googleanalytics.args[2][3].should.equal('Product Click');
 
         window.googleanalytics.args = [];
 
@@ -722,6 +788,7 @@ describe('Google Analytics Forwarder', function() {
     it('it should log product view detail', function(done) {
         var event = {
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductViewDetail,
             ProductAction: {
                 ProductActionType: ProductActionType.ViewDetail,
                 ProductList: [
@@ -749,7 +816,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[2][0].should.equal('tracker-name.send');
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
-        window.googleanalytics.args[2][3].should.equal('blahblah');
+        window.googleanalytics.args[2][3].should.equal('Product View Details');
 
         window.googleanalytics.args = [];
 
@@ -763,6 +830,7 @@ describe('Google Analytics Forwarder', function() {
     it('it should log product impressions', function(done) {
         var event = {
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductImpression,
             ProductImpressions: [
                 {
                     ProductImpressionList: 'Test',
@@ -801,7 +869,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[1][0].should.equal('tracker-name.send');
         window.googleanalytics.args[1][1].should.equal('event');
         window.googleanalytics.args[1][2].should.equal('eCommerce');
-        window.googleanalytics.args[1][3].should.equal('blahblah');
+        window.googleanalytics.args[1][3].should.equal('Product Impression');
 
         window.googleanalytics.args = [];
 
@@ -830,6 +898,7 @@ describe('Google Analytics Forwarder', function() {
     it('should log promotion view', function(done) {
         var event = {
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.PromotionView,
             PromotionAction: {
                 PromotionActionType: PromotionActionType.PromotionView,
                 PromotionList: [
@@ -861,7 +930,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[1][0].should.equal('tracker-name.send');
         window.googleanalytics.args[1][1].should.equal('event');
         window.googleanalytics.args[1][2].should.equal('eCommerce');
-        window.googleanalytics.args[1][3].should.equal('blahblah');
+        window.googleanalytics.args[1][3].should.equal('Promotion View');
 
         window.googleanalytics.args = [];
 
@@ -875,6 +944,7 @@ describe('Google Analytics Forwarder', function() {
     it('should log promotion click', function(done) {
         mParticle.forwarder.process({
             EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.PromotionClick,
             PromotionAction: {
                 PromotionActionType: PromotionActionType.PromotionClick,
                 PromotionList: [
@@ -910,7 +980,7 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[2][0].should.equal('tracker-name.send');
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
-        window.googleanalytics.args[2][3].should.equal('blahblah');
+        window.googleanalytics.args[2][3].should.equal('Promotion Click');
 
         done();
     });

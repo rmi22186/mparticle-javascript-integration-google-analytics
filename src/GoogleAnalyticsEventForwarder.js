@@ -16,7 +16,7 @@
 
     var name = 'GoogleAnalyticsEventForwarder',
         moduleId = 6,
-        version = '2.0.1',
+        version = '2.0.2',
         MessageType = {
             SessionStart: 1,
             SessionEnd: 2,
@@ -238,7 +238,7 @@
                     ga(createCmd('ec:setAction'), 'promo_click');
                 }
 
-                sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
+                sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
             }
             else if (data.ProductAction) {
                 if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Purchase) {
@@ -257,7 +257,7 @@
                         coupon: data.ProductAction.CouponCode
                     });
 
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
+                    sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Refund) {
                     if (data.ProductAction.ProductList.length) {
@@ -275,7 +275,7 @@
                         id: data.ProductAction.TransactionId
                     });
 
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
+                    sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ||
                     data.ProductAction.ProductActionType == mParticle.ProductActionType.RemoveFromCart) {
@@ -288,7 +288,7 @@
                     ga(createCmd('ec:setAction'),
                         data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ? 'add' : 'remove');
 
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
+                    sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Checkout) {
                     data.ProductAction.ProductList.forEach(function(product) {
@@ -302,7 +302,7 @@
                         option: data.ProductAction.CheckoutOptions
                     });
 
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
+                    sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Click) {
                     data.ProductAction.ProductList.forEach(function(product) {
@@ -312,7 +312,7 @@
                     });
 
                     ga(createCmd('ec:setAction'), 'click');
-                    sendEcommerceEvent(data.EventDataType, outputDimensionsAndMetrics, customFlags);
+                    sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
                 }
                 else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.ViewDetail) {
                     data.ProductAction.ProductList.forEach(function(product) {

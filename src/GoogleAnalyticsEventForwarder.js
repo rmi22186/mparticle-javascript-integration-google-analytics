@@ -30,6 +30,7 @@
         NON_INTERACTION_FLAG = 'Google.NonInteraction',
         CATEGORY = 'Google.Category',
         LABEL = 'Google.Label',
+        TITLE = 'Google.Title'
         PAGE = 'Google.Page',
         VALUE = 'Google.Value',
         HITTYPE = 'Google.HitType';
@@ -334,6 +335,9 @@
             else {
                 if (event.CustomFlags && event.CustomFlags[PAGE]) {
                     ga(createCmd('set'), 'page', event.CustomFlags[PAGE]);
+                }
+                if (event.CustomFlags && event.CustomFlags[TITLE]){
+                    ga(createCmd('set'), 'title', event.CustomFlags[TITLE]);
                 }
                 ga(createCmd('send'), customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'pageview', outputDimensionsAndMetrics);
             }

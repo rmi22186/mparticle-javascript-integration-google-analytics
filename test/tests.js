@@ -220,7 +220,7 @@ describe('Google Analytics Forwarder', function() {
         done();
     });
 
-    it('should change page name for custom flag', function(done) {
+    it('should change page name for custom flag based on Google.Page', function(done) {
         mParticle.forwarder.process({
             EventDataType: MessageType.PageView,
             EventName: 'Test Page Event',
@@ -235,6 +235,49 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[0][0].should.equal('tracker-name.set');
         window.googleanalytics.args[0][1].should.equal('page');
         window.googleanalytics.args[0][2].should.equal('foo page');
+
+        done();
+    });
+
+    it('should change page name for custom flag based on Google.Title', function(done) {
+        mParticle.forwarder.process({
+            EventDataType: MessageType.PageView,
+            EventName: 'Test Page Event',
+            EventAttributes: {
+                anything: 'foo',
+            },
+            CustomFlags: {
+                'Google.Title': 'foo title',
+            },
+        });
+
+        window.googleanalytics.args[0][0].should.equal('tracker-name.set');
+        window.googleanalytics.args[0][1].should.equal('title');
+        window.googleanalytics.args[0][2].should.equal('foo title');
+
+        done();
+    });
+
+    it('should change page name for custom flag based on both Google.Page and Google.Title', function(done) {
+        mParticle.forwarder.process({
+            EventDataType: MessageType.PageView,
+            EventName: 'Test Page Event',
+            EventAttributes: {
+                anything: 'foo',
+            },
+            CustomFlags: {
+                'Google.Page': 'foo page',
+                'Google.Title': 'foo title',
+            },
+        });
+
+        window.googleanalytics.args[0][0].should.equal('tracker-name.set');
+        window.googleanalytics.args[0][1].should.equal('page');
+        window.googleanalytics.args[0][2].should.equal('foo page');
+
+        window.googleanalytics.args[1][0].should.equal('tracker-name.set');
+        window.googleanalytics.args[1][1].should.equal('title');
+        window.googleanalytics.args[1][2].should.equal('foo title');
 
         done();
     });

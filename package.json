@@ -1,8 +1,9 @@
 {
     "name": "@mparticle/web-google-analytics-kit",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "author": "mParticle Developers <developers@mparticle.com> (https://www.mparticle.com)",
     "description": "mParticle integration sdk for Google Analytics",
+    "main": "dist/GoogleAnalyticsEventForwarder.common.js",
     "browser": "dist/GoogleAnalyticsEventForwarder.common.js",
     "files": [
         "dist/GoogleAnalyticsEventForwarder.common.js"
@@ -24,7 +25,7 @@
         "prettier": "1.18.2"
     },
     "dependencies": {
-        "@mparticle/web-sdk": "^2.10.0-rc.1"
+        "@mparticle/web-sdk": "^2.11.0"
     },
     "license": "Apache-2.0"
 }

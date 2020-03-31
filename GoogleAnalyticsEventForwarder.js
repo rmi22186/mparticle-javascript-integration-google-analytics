@@ -17,7 +17,7 @@ var mpGoogleAnalyticsKit = (function (exports) {
 
         var name = 'GoogleAnalyticsEventForwarder',
             moduleId = 6,
-            version = '2.0.2',
+            version = '2.0.4',
             MessageType = {
                 SessionStart: 1,
                 SessionEnd: 2,
@@ -90,7 +90,11 @@ var mpGoogleAnalyticsKit = (function (exports) {
                 for (var customDimension in mapLevel.customDimensions) {
                     for (attrName in attributes) {
                         if (customDimension === attrName) {
-                            targetDimensionsAndMetrics[mapLevel.customDimensions[customDimension]] = attributes[attrName];
+                            mapLevel.customDimensions[customDimension].forEach(function(cd) {
+                                if (!targetDimensionsAndMetrics[cd]) {
+                                    targetDimensionsAndMetrics[cd] = attributes[attrName];
+                                }
+                            });
                         }
                     }
                 }
@@ -98,7 +102,11 @@ var mpGoogleAnalyticsKit = (function (exports) {
                 for (var customMetric in mapLevel.customMetrics) {
                     for (attrName in attributes) {
                         if (customMetric === attrName) {
-                            targetDimensionsAndMetrics[mapLevel.customMetrics[customMetric]] = attributes[attrName];
+                            mapLevel.customMetrics[customMetric].forEach(function(cm) {
+                                if (!targetDimensionsAndMetrics[cm]) {
+                                    targetDimensionsAndMetrics[cm] = attributes[attrName];
+                                }
+                            });
                         }
                     }
                 }
@@ -469,15 +477,16 @@ var mpGoogleAnalyticsKit = (function (exports) {
                         if (forwarderSettings.useSecure == 'True') {
                             ga(createCmd('set'), 'forceSSL', true);
                         }
+
                         if (forwarderSettings.customDimensions) {
                             var customDimensions = JSON.parse(forwarderSettings.customDimensions.replace(/&quot;/g, '\"'));
                             customDimensions.forEach(function(dimension) {
                                 if (dimension.maptype === 'EventAttributeClass.Name') {
-                                    eventLevelMap['customDimensions'][dimension.map] = formatDimensionOrMetric(dimension.value);
+                                    addTypeToMapping(eventLevelMap, 'customDimensions', dimension);
                                 } else if (dimension.maptype === 'UserAttributeClass.Name') {
-                                    userLevelMap['customDimensions'][dimension.map] = formatDimensionOrMetric(dimension.value);
+                                    addTypeToMapping(userLevelMap, 'customDimensions', dimension);
                                 } else if (dimension.maptype === 'ProductAttributeSelector.Name') {
-                                    productLevelMap['customDimensions'][dimension.map] = formatDimensionOrMetric(dimension.value);
+                                    addTypeToMapping(productLevelMap, 'customDimensions', dimension);
                                 }
                             });
                         }
@@ -486,11 +495,11 @@ var mpGoogleAnalyticsKit = (function (exports) {
                             var customMetrics = JSON.parse(forwarderSettings.customMetrics.replace(/&quot;/g, '\"'));
                             customMetrics.forEach(function(metric) {
                                 if (metric.maptype === 'EventAttributeClass.Name') {
-                                    eventLevelMap['customMetrics'][metric.map] = formatDimensionOrMetric(metric.value);
+                                    addTypeToMapping(eventLevelMap, 'customMetrics', metric);
                                 } else if (metric.maptype === 'UserAttributeClass.Name') {
-                                    userLevelMap['customMetrics'][metric.map] = formatDimensionOrMetric(metric.value);
+                                    addTypeToMapping(userLevelMap, 'customMetrics', metric);
                                 } else if (metric.maptype === 'ProductAttributeSelector.Name') {
-                                    productLevelMap['customMetrics'][metric.map] = formatDimensionOrMetric(metric.value);
+                                    addTypeToMapping(productLevelMap, 'customMetrics', metric);
                                 }
                             });
                         }
@@ -501,6 +510,18 @@ var mpGoogleAnalyticsKit = (function (exports) {
                 }
                 catch (e) {
                     return 'Failed to initialize: ' + name;
+                }
+            }
+
+            function addTypeToMapping(map, type, mapVal) {
+                var formattedMapVal = formatDimensionOrMetric(mapVal.value);
+                if (!map[type][mapVal.map]) {
+                    map[type][mapVal.map] = [formattedMapVal];
+                    return;
+                }
+
+                if (!map[type][mapVal.map].indexOf(mapVal.value) >= 0) {
+                    map[type][mapVal.map].push(formattedMapVal);
                 }
             }
 

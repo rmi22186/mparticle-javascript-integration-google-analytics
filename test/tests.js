@@ -176,15 +176,31 @@ describe('Google Analytics Forwarder', function() {
             {
                 useCustomerId: 'True',
                 customDimensions:
-                    '[{ \
-                &quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;color&quot;},{&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 2&quot;,&quot;map&quot;:&quot;gender&quot;},{&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 3&quot;,&quot;map&quot;:&quot;size&quot;}, \
-                {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;color&quot;},{&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Dimension 2&quot;,&quot;map&quot;:&quot;gender&quot;},{&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Dimension 3&quot;,&quot;map&quot;:&quot;size&quot;}, \
-                {&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;color&quot;},{&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 2&quot;,&quot;map&quot;:&quot;gender&quot;},{&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 3&quot;,&quot;map&quot;:&quot;size&quot;}]',
-
+                    '[\
+                {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;color&quot;},\
+                {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;colour&quot;},\
+                {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 2&quot;,&quot;map&quot;:&quot;gender&quot;},\
+                {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 5&quot;,&quot;map&quot;:&quot;sex&quot;},\
+                {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 3&quot;,&quot;map&quot;:&quot;size&quot;},\
+                {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;color&quot;},\
+                {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Dimension 2&quot;,&quot;map&quot;:&quot;gender&quot;},\
+                {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Dimension 3&quot;,&quot;map&quot;:&quot;size&quot;},\
+                {&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;color&quot;},\
+                {&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 2&quot;,&quot;map&quot;:&quot;gender&quot;},\
+                {&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 3&quot;,&quot;map&quot;:&quot;size&quot;}\
+            ]',
                 customMetrics:
-                    '[{&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 1&quot;,&quot;map&quot;:&quot;levels&quot;},{&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 2&quot;,&quot;map&quot;:&quot;shots&quot;},{&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 3&quot;,&quot;map&quot;:&quot;players&quot;}, \
-                {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Metric 1&quot;,&quot;map&quot;:&quot;levels&quot;},{&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Metric 2&quot;,&quot;map&quot;:&quot;shots&quot;},{&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Metric 3&quot;,&quot;map&quot;:&quot;players&quot;}, \
-                {&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 1&quot;,&quot;map&quot;:&quot;levels&quot;},{&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 2&quot;,&quot;map&quot;:&quot;shots&quot;},{&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 3&quot;,&quot;map&quot;:&quot;players&quot;}]',
+                    '[\
+                {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 1&quot;,&quot;map&quot;:&quot;levels&quot;},\
+                {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 2&quot;,&quot;map&quot;:&quot;shots&quot;},\
+                {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 3&quot;,&quot;map&quot;:&quot;players&quot;},\
+                {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Metric 1&quot;,&quot;map&quot;:&quot;levels&quot;},\
+                {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Metric 2&quot;,&quot;map&quot;:&quot;shots&quot;},\
+                {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Metric 3&quot;,&quot;map&quot;:&quot;players&quot;},\
+                {&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 1&quot;,&quot;map&quot;:&quot;levels&quot;},\
+                {&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 2&quot;,&quot;map&quot;:&quot;shots&quot;},\
+                {&quot;maptype&quot;:&quot;UserAttributeClass.Name&quot;,&quot;value&quot;:&quot;Metric 3&quot;,&quot;map&quot;:&quot;players&quot;}\
+                ]',
             },
             reportService.cb,
             true,
@@ -282,7 +298,7 @@ describe('Google Analytics Forwarder', function() {
         done();
     });
 
-    it('should log custom dimensions and custom event with an event log and custom flag', function(done) {
+    it('should log custom dimensions and custom events with an event log', function(done) {
         var event = {
             EventDataType: MessageType.PageEvent,
             EventName: 'Test Event',
@@ -472,6 +488,73 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[1][4].should.have.property('metric1', 1);
         window.googleanalytics.args[1][4].should.have.property('metric2', 15);
         window.googleanalytics.args[1][4].should.have.property('metric3', 3);
+        done();
+    });
+
+    it('should allow an attribute to be mapped to multiple dimensions', function(done) {
+        var event = {
+            EventDataType: MessageType.PageEvent,
+            EventName: 'Test Event',
+            EventAttributes: {
+                label: 'label',
+                value: 200,
+                gender: 'male',
+            },
+        };
+        mParticle.forwarder.process(event);
+        window.googleanalytics.args[0][6].should.have.property(
+            'dimension2',
+            'male'
+        );
+
+        var event2 = {
+            EventDataType: MessageType.PageEvent,
+            EventName: 'Test Event',
+            EventAttributes: {
+                label: 'label',
+                value: 200,
+                sex: 'male',
+            },
+        };
+
+        mParticle.forwarder.process(event2);
+        window.googleanalytics.args[1][6].should.have.property(
+            'dimension5',
+            'male'
+        );
+        done();
+    });
+
+    it('should allow multiple attributes to be mapped to the same dimensions', function(done) {
+        var event = {
+            EventDataType: MessageType.PageEvent,
+            EventName: 'Test Event',
+            EventAttributes: {
+                label: 'label',
+                value: 200,
+                colour: 'blue',
+            },
+        };
+        mParticle.forwarder.process(event);
+
+        window.googleanalytics.args[0][6].should.have.property(
+            'dimension1',
+            'blue'
+        );
+        var event2 = {
+            EventDataType: MessageType.PageEvent,
+            EventName: 'Test Event',
+            EventAttributes: {
+                label: 'label',
+                value: 200,
+                color: 'blue',
+            },
+        };
+        mParticle.forwarder.process(event2);
+        window.googleanalytics.args[1][6].should.have.property(
+            'dimension1',
+            'blue'
+        );
         done();
     });
 

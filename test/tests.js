@@ -195,6 +195,7 @@ describe('Google Analytics Forwarder', function() {
                 {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;color&quot;},\
                 {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;colour&quot;},\
                 {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 2&quot;,&quot;map&quot;:&quot;gender&quot;},\
+                {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 5&quot;,&quot;map&quot;:&quot;gender&quot;},\
                 {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 5&quot;,&quot;map&quot;:&quot;sex&quot;},\
                 {&quot;maptype&quot;:&quot;EventAttributeClass.Name&quot;,&quot;value&quot;:&quot;Dimension 3&quot;,&quot;map&quot;:&quot;size&quot;},\
                 {&quot;maptype&quot;:&quot;ProductAttributeSelector.Name&quot;,&quot;value&quot;:&quot;Dimension 1&quot;,&quot;map&quot;:&quot;color&quot;},\
@@ -536,26 +537,16 @@ describe('Google Analytics Forwarder', function() {
             },
         };
         mParticle.forwarder.process(event);
+
         window.googleanalytics.args[0][6].should.have.property(
             'dimension2',
             'male'
         );
-
-        var event2 = {
-            EventDataType: MessageType.PageEvent,
-            EventName: 'Test Event',
-            EventAttributes: {
-                label: 'label',
-                value: 200,
-                sex: 'male',
-            },
-        };
-
-        mParticle.forwarder.process(event2);
-        window.googleanalytics.args[1][6].should.have.property(
+        window.googleanalytics.args[0][6].should.have.property(
             'dimension5',
             'male'
         );
+
         done();
     });
 
@@ -1149,6 +1140,364 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[2][1].should.equal('event');
         window.googleanalytics.args[2][2].should.equal('eCommerce');
         window.googleanalytics.args[2][3].should.equal('Promotion Click');
+
+        done();
+    });
+
+    it('should log page event along with user timing event when custom flags are passed', function(done) {
+        mParticle.forwarder.process({
+            EventDataType: MessageType.PageEvent,
+            EventName: 'Test Page Event',
+            CustomFlags: {
+                'Google.Label': 'Custom Label',
+                'Google.UserTiming': 500,
+                'Google.Category': 'Custom Category',
+            },
+            EventCategory: EventType.Location,
+            EventAttributes: {
+                label: 'label',
+                value: 200,
+                category: 'category',
+                gender: 'female',
+                color: 'blue',
+                size: 'large',
+                levels: 1,
+                shots: 15,
+                players: 3,
+            },
+        });
+
+        // regular GA event
+        window.googleanalytics.args[0][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[0][1].should.equal('event');
+        window.googleanalytics.args[0][2].should.equal('Custom Category');
+        window.googleanalytics.args[0][3].should.equal('Test Page Event');
+        window.googleanalytics.args[0][4].should.equal('Custom Label');
+        window.googleanalytics.args[0][5].should.equal(200);
+        window.googleanalytics.args[0][6].should.have.property(
+            'dimension1',
+            'blue'
+        );
+        window.googleanalytics.args[0][6].should.have.property(
+            'dimension2',
+            'female'
+        );
+        window.googleanalytics.args[0][6].should.have.property(
+            'dimension3',
+            'large'
+        );
+        window.googleanalytics.args[0][6].should.have.property('metric1', 1);
+        window.googleanalytics.args[0][6].should.have.property('metric2', 15);
+        window.googleanalytics.args[0][6].should.have.property('metric3', 3);
+
+        // user timing event
+        window.googleanalytics.args[1][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[1][1].hitType.should.equal('timing');
+        window.googleanalytics.args[1][1].timingCategory.should.equal(
+            'Custom Category'
+        );
+        window.googleanalytics.args[1][1].timingValue.should.equal(500);
+        window.googleanalytics.args[1][1].timingLabel.should.equal(
+            'Custom Label'
+        );
+        window.googleanalytics.args[1][1].timingVar.should.equal(
+            'Test Page Event'
+        );
+        window.googleanalytics.args[1][1].should.have.property(
+            'dimension1',
+            'blue'
+        );
+        window.googleanalytics.args[1][1].should.have.property(
+            'dimension2',
+            'female'
+        );
+        window.googleanalytics.args[1][1].should.have.property(
+            'dimension3',
+            'large'
+        );
+        window.googleanalytics.args[1][1].should.have.property('metric1', 1);
+        window.googleanalytics.args[1][1].should.have.property('metric2', 15);
+        window.googleanalytics.args[1][1].should.have.property('metric3', 3);
+        done();
+    });
+
+    it('should log regular page event along with user timing event when custom flags are passed ', function(done) {
+        mParticle.forwarder.process({
+            EventDataType: MessageType.PageEvent,
+            EventName: 'Test Page Event',
+            CustomFlags: {
+                'Google.Label': 'Custom Label',
+                'Google.UserTiming': 500,
+                'Google.Category': 'Custom Category',
+            },
+            EventCategory: EventType.Location,
+            EventAttributes: {
+                label: 'label',
+                value: 200,
+                category: 'category',
+                gender: 'female',
+                color: 'blue',
+                size: 'large',
+                levels: 1,
+                shots: 15,
+                players: 3,
+            },
+        });
+
+        // regular GA event
+        window.googleanalytics.args[0][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[0][1].should.equal('event');
+        window.googleanalytics.args[0][2].should.equal('Custom Category');
+        window.googleanalytics.args[0][3].should.equal('Test Page Event');
+        window.googleanalytics.args[0][4].should.equal('Custom Label');
+        window.googleanalytics.args[0][5].should.equal(200);
+        window.googleanalytics.args[0][6].should.have.property(
+            'dimension1',
+            'blue'
+        );
+        window.googleanalytics.args[0][6].should.have.property(
+            'dimension2',
+            'female'
+        );
+        window.googleanalytics.args[0][6].should.have.property(
+            'dimension3',
+            'large'
+        );
+        window.googleanalytics.args[0][6].should.have.property('metric1', 1);
+        window.googleanalytics.args[0][6].should.have.property('metric2', 15);
+        window.googleanalytics.args[0][6].should.have.property('metric3', 3);
+
+        // user timing event
+        window.googleanalytics.args[1][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[1][1].hitType.should.equal('timing');
+        window.googleanalytics.args[1][1].timingCategory.should.equal(
+            'Custom Category'
+        );
+        window.googleanalytics.args[1][1].timingValue.should.equal(500);
+        window.googleanalytics.args[1][1].timingLabel.should.equal(
+            'Custom Label'
+        );
+        window.googleanalytics.args[1][1].timingVar.should.equal(
+            'Test Page Event'
+        );
+        window.googleanalytics.args[1][1].should.have.property(
+            'dimension1',
+            'blue'
+        );
+        window.googleanalytics.args[1][1].should.have.property(
+            'dimension2',
+            'female'
+        );
+        window.googleanalytics.args[1][1].should.have.property(
+            'dimension3',
+            'large'
+        );
+        window.googleanalytics.args[1][1].should.have.property('metric1', 1);
+        window.googleanalytics.args[1][1].should.have.property('metric2', 15);
+        window.googleanalytics.args[1][1].should.have.property('metric3', 3);
+
+        done();
+    });
+
+    it('should log page view along with user timing event when custom flags are passed', function(done) {
+        var event = {
+            EventName: 'PageView',
+            EventDataType: MessageType.PageView,
+            CustomFlags: {
+                'Google.Label': 'Custom Label',
+                'Google.UserTiming': 500,
+                'Google.Category': 'Custom Category',
+            },
+        };
+        mParticle.forwarder.process(event);
+
+        window.googleanalytics.args[0][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[0][1].should.equal('pageview');
+
+        // user timing event
+        window.googleanalytics.args[1][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[1][1].hitType.should.equal('timing');
+        window.googleanalytics.args[1][1].timingCategory.should.equal(
+            'Custom Category'
+        );
+        window.googleanalytics.args[1][1].timingValue.should.equal(500);
+        window.googleanalytics.args[1][1].timingLabel.should.equal(
+            'Custom Label'
+        );
+        window.googleanalytics.args[1][1].timingVar.should.equal('PageView');
+
+        done();
+    });
+
+    it('should log page view along with user timing event when custom flags are passed', function(done) {
+        var event = {
+            EventName: 'PageView',
+            EventDataType: MessageType.PageView,
+            CustomFlags: {
+                'Google.Label': 'Custom Label',
+                'Google.UserTiming': 500,
+                'Google.Category': 'Custom Category',
+            },
+        };
+        mParticle.forwarder.process(event);
+
+        window.googleanalytics.args[0][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[0][1].should.equal('pageview');
+
+        // user timing event
+        window.googleanalytics.args[1][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[1][1].hitType.should.equal('timing');
+        window.googleanalytics.args[1][1].timingCategory.should.equal(
+            'Custom Category'
+        );
+        window.googleanalytics.args[1][1].timingValue.should.equal(500);
+        window.googleanalytics.args[1][1].timingLabel.should.equal(
+            'Custom Label'
+        );
+        window.googleanalytics.args[1][1].timingVar.should.equal('PageView');
+
+        done();
+    });
+
+    it('should log commerce event along with user timing event when custom flags are passed ', function(done) {
+        mParticle.forwarder.process({
+            EventName: 'eCommerce - Purchase',
+            EventDataType: MessageType.Commerce,
+            EventCategory: CommerceEventType.ProductPurchase,
+            ProductAction: {
+                ProductActionType: ProductActionType.Purchase,
+                ProductList: [
+                    {
+                        Sku: '12345',
+                        Name: 'iPhone 6',
+                        Category: 'Phones',
+                        Brand: 'iPhone',
+                        Variant: '6',
+                        Price: 400,
+                        CouponCode: null,
+                        Quantity: 1,
+                    },
+                ],
+                TransactionId: 123,
+                Affiliation: 'my-affiliation',
+                TotalAmount: 450,
+                TaxAmount: 40,
+                ShippingAmount: 10,
+                CouponCode: null,
+            },
+            CustomFlags: {
+                'Google.Label': 'Custom Label',
+                'Google.UserTiming': 500,
+                'Google.Category': 'Custom Category',
+            },
+        });
+
+        window.googleanalytics.args[0][0].should.equal(
+            'tracker-name.ec:addProduct'
+        );
+        window.googleanalytics.args[0][1].should.have.property('id', '12345');
+        window.googleanalytics.args[0][1].should.have.property(
+            'name',
+            'iPhone 6'
+        );
+        window.googleanalytics.args[0][1].should.have.property(
+            'category',
+            'Phones'
+        );
+        window.googleanalytics.args[0][1].should.have.property(
+            'brand',
+            'iPhone'
+        );
+        window.googleanalytics.args[0][1].should.have.property('variant', '6');
+        window.googleanalytics.args[0][1].should.have.property('price', 400);
+        window.googleanalytics.args[0][1].should.have.property('coupon', null);
+        window.googleanalytics.args[0][1].should.have.property('quantity', 1);
+
+        window.googleanalytics.args[1][0].should.equal(
+            'tracker-name.ec:setAction'
+        );
+        window.googleanalytics.args[1][1].should.equal('purchase');
+        window.googleanalytics.args[1][2].should.have.property('id', 123);
+        window.googleanalytics.args[1][2].should.have.property(
+            'affiliation',
+            'my-affiliation'
+        );
+        window.googleanalytics.args[1][2].should.have.property('revenue', 450);
+        window.googleanalytics.args[1][2].should.have.property('tax', 40);
+        window.googleanalytics.args[1][2].should.have.property('shipping', 10);
+        window.googleanalytics.args[1][2].should.have.property('coupon', null);
+
+        window.googleanalytics.args[2][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[2][1].should.equal('event');
+        window.googleanalytics.args[2][2].should.equal('eCommerce');
+        window.googleanalytics.args[2][3].should.equal('Product Purchased');
+
+        // user timing event
+        window.googleanalytics.args[3][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[3][1].hitType.should.equal('timing');
+        window.googleanalytics.args[3][1].timingCategory.should.equal(
+            'Custom Category'
+        );
+        window.googleanalytics.args[3][1].timingValue.should.equal(500);
+        window.googleanalytics.args[3][1].timingLabel.should.equal(
+            'Custom Label'
+        );
+        window.googleanalytics.args[3][1].timingVar.should.equal(
+            'eCommerce - Purchase'
+        );
+
+        done();
+    });
+
+    it("should not log a user timing event if Google.UserTiming is not of type 'number'", function(done) {
+        mParticle.forwarder.process({
+            EventDataType: MessageType.PageEvent,
+            EventName: 'Test Page Event',
+            CustomFlags: {
+                'Google.Label': 'Custom Label',
+                'Google.UserTiming': '500',
+                'Google.Category': 'Custom Category',
+            },
+            EventCategory: EventType.Location,
+        });
+
+        // regular GA event
+        window.googleanalytics.args[0][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[0][1].should.equal('event');
+        window.googleanalytics.args[0][2].should.equal('Custom Category');
+        window.googleanalytics.args[0][3].should.equal('Test Page Event');
+        window.googleanalytics.args[0][4].should.equal('Custom Label');
+
+        // user timing event should not exist
+        window.googleanalytics.args.length.should.equal(1);
+
+        done();
+    });
+
+    it('should pass EventCategory to a user timing event if Google.Category custom flag not passed', function(done) {
+        mParticle.forwarder.process({
+            EventDataType: MessageType.PageEvent,
+            EventName: 'Test Page Event',
+            CustomFlags: {
+                'Google.Label': 'Custom Label',
+                'Google.UserTiming': 500,
+            },
+            EventCategory: EventType.Location,
+        });
+
+        // regular GA event
+        window.googleanalytics.args[0][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[0][1].should.equal('event');
+        window.googleanalytics.args[0][2].should.equal('Location');
+        window.googleanalytics.args[0][3].should.equal('Test Page Event');
+        window.googleanalytics.args[0][4].should.equal('Custom Label');
+
+        // user timing event should not exist
+        window.googleanalytics.args[1][0].should.equal('tracker-name.send');
+        window.googleanalytics.args[1][1].hitType.should.equal('timing');
+        window.googleanalytics.args[1][1].timingCategory.should.equal(
+            'Location'
+        );
 
         done();
     });

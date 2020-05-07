@@ -17,7 +17,7 @@ var mpGoogleAnalyticsKit = (function (exports) {
 
         var name = 'GoogleAnalyticsEventForwarder',
             moduleId = 6,
-            version = '2.0.4',
+            version = '2.0.5',
             MessageType = {
                 SessionStart: 1,
                 SessionEnd: 2,
@@ -34,6 +34,7 @@ var mpGoogleAnalyticsKit = (function (exports) {
             TITLE = 'Google.Title';
             PAGE = 'Google.Page',
             VALUE = 'Google.Value',
+            USERTIMING = 'Google.UserTiming',
             HITTYPE = 'Google.HitType';
 
         var constructor = function() {
@@ -161,16 +162,29 @@ var mpGoogleAnalyticsKit = (function (exports) {
             }
 
             function setUserIdentity(id, type) {
-                if (isInitialized) {
-                    if (forwarderSettings.useCustomerId == 'True' && type == window.mParticle.IdentityType.CustomerId) {
-                        if (forwarderSettings.classicMode == 'True') ;
-                        else {
-                            ga(createCmd('set'), 'userId', window.mParticle.generateHash(id));
+                if (window.mParticle.getVersion().split('.')[0] === '1') {
+                    if (isInitialized) {
+                        if (forwarderSettings.useCustomerId == 'True' && type == window.mParticle.IdentityType.CustomerId) {
+                            if (forwarderSettings.classicMode == 'True') ;
+                            else {
+                                ga(createCmd('set'), 'userId', window.mParticle.generateHash(id));
+                            }
                         }
                     }
+                    else {
+                        return 'Can\'t call setUserIdentity on forwarder ' + name + ', not initialized';
+                    }
                 }
-                else {
-                    return 'Can\'t call setUserIdentity on forwarder ' + name + ', not initialized';
+            }
+
+            function onUserIdentified(user) {
+                var userIdentities = user.getUserIdentities().userIdentities;
+                if (isInitialized) {
+                    if (forwarderSettings.useCustomerId == 'True' && userIdentities.customerid) {
+                        if (forwarderSettings.classicMode !== 'True') {
+                            ga(createCmd('set'), 'userId', window.mParticle.generateHash(userIdentities.customerid));
+                        }
+                    }
                 }
             }
 
@@ -210,30 +224,30 @@ var mpGoogleAnalyticsKit = (function (exports) {
                 ga(createCmd('send'), customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'event', 'eCommerce', getEventTypeName(type), outputDimensionsAndMetrics);
             }
 
-            function logCommerce(data, outputDimensionsAndMetrics, customFlags) {
+            function logCommerce(event, outputDimensionsAndMetrics, customFlags) {
                 if (!isEnhancedEcommerceLoaded) {
                     ga(createCmd('require'), 'ec');
                     isEnhancedEcommerceLoaded = true;
                 }
 
-                if (data.CurrencyCode) {
+                if (event.CurrencyCode) {
                     // Set currency code if present
-                    ga(createCmd('set'), '&cu', data.CurrencyCode);
+                    ga(createCmd('set'), '&cu', event.CurrencyCode);
                 }
 
-                if (data.ProductImpressions) {
+                if (event.ProductImpressions) {
                     // Impression event
-                    data.ProductImpressions.forEach(function(impression) {
+                    event.ProductImpressions.forEach(function(impression) {
                         impression.ProductList.forEach(function(product) {
                             addEcommerceProductImpression(product);
                         });
                     });
 
-                    sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
+                    sendEcommerceEvent(event.EventCategory, outputDimensionsAndMetrics, customFlags);
                 }
-                else if (data.PromotionAction) {
+                else if (event.PromotionAction) {
                     // Promotion event
-                    data.PromotionAction.PromotionList.forEach(function(promotion) {
+                    event.PromotionAction.PromotionList.forEach(function(promotion) {
                         ga(createCmd('ec:addPromo'), {
                             id: promotion.Id,
                             name: promotion.Name,
@@ -242,34 +256,34 @@ var mpGoogleAnalyticsKit = (function (exports) {
                         });
                     });
 
-                    if (data.PromotionAction.PromotionActionType == mParticle.PromotionType.PromotionClick) {
+                    if (event.PromotionAction.PromotionActionType == mParticle.PromotionType.PromotionClick) {
                         ga(createCmd('ec:setAction'), 'promo_click');
                     }
 
-                    sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
+                    sendEcommerceEvent(event.EventCategory, outputDimensionsAndMetrics, customFlags);
                 }
-                else if (data.ProductAction) {
-                    if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Purchase) {
-                        data.ProductAction.ProductList.forEach(function(product) {
+                else if (event.ProductAction) {
+                    if (event.ProductAction.ProductActionType == mParticle.ProductActionType.Purchase) {
+                        event.ProductAction.ProductList.forEach(function(product) {
                             var updatedProductDimentionAndMetrics = {};
                             applyCustomDimensionsMetricsForSourceAttributes(product.Attributes, updatedProductDimentionAndMetrics, productLevelMap);
                             addEcommerceProduct(product, updatedProductDimentionAndMetrics);
                         });
 
                         ga(createCmd('ec:setAction'), 'purchase', {
-                            id: data.ProductAction.TransactionId,
-                            affiliation: data.ProductAction.Affiliation,
-                            revenue: data.ProductAction.TotalAmount,
-                            tax: data.ProductAction.TaxAmount,
-                            shipping: data.ProductAction.ShippingAmount,
-                            coupon: data.ProductAction.CouponCode
+                            id: event.ProductAction.TransactionId,
+                            affiliation: event.ProductAction.Affiliation,
+                            revenue: event.ProductAction.TotalAmount,
+                            tax: event.ProductAction.TaxAmount,
+                            shipping: event.ProductAction.ShippingAmount,
+                            coupon: event.ProductAction.CouponCode
                         });
 
-                        sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
+                        sendEcommerceEvent(event.EventCategory, outputDimensionsAndMetrics, customFlags);
                     }
-                    else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Refund) {
-                        if (data.ProductAction.ProductList.length) {
-                            data.ProductAction.ProductList.forEach(function(product) {
+                    else if (event.ProductAction.ProductActionType == mParticle.ProductActionType.Refund) {
+                        if (event.ProductAction.ProductList.length) {
+                            event.ProductAction.ProductList.forEach(function(product) {
                                 var productAttrs = {
                                     id: product.Sku,
                                     quantity: product.Quantity
@@ -280,58 +294,60 @@ var mpGoogleAnalyticsKit = (function (exports) {
                         }
 
                         ga(createCmd('ec:setAction'), 'refund', {
-                            id: data.ProductAction.TransactionId
+                            id: event.ProductAction.TransactionId
                         });
 
-                        sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
+                        sendEcommerceEvent(event.EventCategory, outputDimensionsAndMetrics, customFlags);
                     }
-                    else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ||
-                        data.ProductAction.ProductActionType == mParticle.ProductActionType.RemoveFromCart) {
+                    else if (event.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ||
+                        event.ProductAction.ProductActionType == mParticle.ProductActionType.RemoveFromCart) {
                         var updatedProductDimentionAndMetrics = {};
-                        data.ProductAction.ProductList.forEach(function(product) {
+                        event.ProductAction.ProductList.forEach(function(product) {
                             applyCustomDimensionsMetricsForSourceAttributes(product.Attributes, updatedProductDimentionAndMetrics, productLevelMap);
                             addEcommerceProduct(product, updatedProductDimentionAndMetrics);
                         });
 
                         ga(createCmd('ec:setAction'),
-                            data.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ? 'add' : 'remove');
+                            event.ProductAction.ProductActionType == mParticle.ProductActionType.AddToCart ? 'add' : 'remove');
 
-                        sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
+                        sendEcommerceEvent(event.EventCategory, outputDimensionsAndMetrics, customFlags);
                     }
-                    else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Checkout) {
-                        data.ProductAction.ProductList.forEach(function(product) {
+                    else if (event.ProductAction.ProductActionType == mParticle.ProductActionType.Checkout) {
+                        event.ProductAction.ProductList.forEach(function(product) {
                             var updatedProductDimentionAndMetrics = {};
                             applyCustomDimensionsMetricsForSourceAttributes(product.Attributes, updatedProductDimentionAndMetrics, productLevelMap);
                             addEcommerceProduct(product, updatedProductDimentionAndMetrics);
                         });
 
                         ga(createCmd('ec:setAction'), 'checkout', {
-                            step: data.ProductAction.CheckoutStep,
-                            option: data.ProductAction.CheckoutOptions
+                            step: event.ProductAction.CheckoutStep,
+                            option: event.ProductAction.CheckoutOptions
                         });
 
-                        sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
+                        sendEcommerceEvent(event.EventCategory, outputDimensionsAndMetrics, customFlags);
                     }
-                    else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.Click) {
-                        data.ProductAction.ProductList.forEach(function(product) {
+                    else if (event.ProductAction.ProductActionType == mParticle.ProductActionType.Click) {
+                        event.ProductAction.ProductList.forEach(function(product) {
                             var updatedProductDimentionAndMetrics = {};
                             applyCustomDimensionsMetricsForSourceAttributes(product.Attributes, updatedProductDimentionAndMetrics, productLevelMap);
                             addEcommerceProduct(product, updatedProductDimentionAndMetrics);
                         });
 
                         ga(createCmd('ec:setAction'), 'click');
-                        sendEcommerceEvent(data.EventCategory, outputDimensionsAndMetrics, customFlags);
+                        sendEcommerceEvent(event.EventCategory, outputDimensionsAndMetrics, customFlags);
                     }
-                    else if (data.ProductAction.ProductActionType == mParticle.ProductActionType.ViewDetail) {
-                        data.ProductAction.ProductList.forEach(function(product) {
+                    else if (event.ProductAction.ProductActionType == mParticle.ProductActionType.ViewDetail) {
+                        event.ProductAction.ProductList.forEach(function(product) {
                             var updatedProductDimentionAndMetrics = {};
                             applyCustomDimensionsMetricsForSourceAttributes(product.Attributes, updatedProductDimentionAndMetrics, productLevelMap);
                             addEcommerceProduct(product );
                         });
 
                         ga(createCmd('ec:setAction'), 'detail');
-                        ga(createCmd('send'), customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'event', 'eCommerce', getEventTypeName(data.EventCategory), outputDimensionsAndMetrics);
+                        ga(createCmd('send'), customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'event', 'eCommerce', getEventTypeName(event.EventCategory), outputDimensionsAndMetrics);
                     }
+
+                    sendOptionalUserTimingMessage(event, outputDimensionsAndMetrics);
                 }
             }
 
@@ -347,21 +363,22 @@ var mpGoogleAnalyticsKit = (function (exports) {
                         ga(createCmd('set'), 'title', event.CustomFlags[TITLE]);
                     }
                     ga(createCmd('send'), customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'pageview', outputDimensionsAndMetrics);
+                    sendOptionalUserTimingMessage(event, outputDimensionsAndMetrics);
                 }
             }
 
-            function logEvent(data, outputDimensionsAndMetrics, customFlags) {
+            function logEvent(event, outputDimensionsAndMetrics, customFlags) {
                 var label = '',
-                    category = getEventTypeName(data.EventCategory),
+                    category = getEventTypeName(event.EventCategory),
                     value;
 
-                if (data.EventAttributes) {
-                    if (data.EventAttributes.label) {
-                        label = data.EventAttributes.label;
+                if (event.EventAttributes) {
+                    if (event.EventAttributes.label) {
+                        label = event.EventAttributes.label;
                     }
 
-                    if (data.EventAttributes.value) {
-                        value = parseInt(data.EventAttributes.value, 10);
+                    if (event.EventAttributes.value) {
+                        value = parseInt(event.EventAttributes.value, 10);
 
                         // Test for NaN
                         if (value != value) {
@@ -369,15 +386,15 @@ var mpGoogleAnalyticsKit = (function (exports) {
                         }
                     }
 
-                    if (data.EventAttributes.category) {
-                        category = data.EventAttributes.category;
+                    if (event.EventAttributes.category) {
+                        category = event.EventAttributes.category;
                     }
                 }
 
-                if(data.CustomFlags) {
-                    var googleCategory = data.CustomFlags[CATEGORY],
-                        googleLabel = data.CustomFlags[LABEL],
-                        googleValue = parseInt(data.CustomFlags[VALUE], 10);
+                if (event.CustomFlags) {
+                    var googleCategory = event.CustomFlags[CATEGORY],
+                        googleLabel = event.CustomFlags[LABEL],
+                        googleValue = parseInt(event.CustomFlags[VALUE], 10);
 
                     if (googleCategory) {
                         category = googleCategory;
@@ -396,7 +413,7 @@ var mpGoogleAnalyticsKit = (function (exports) {
                 if (forwarderSettings.classicMode == 'True') {
                     _gaq.push(['_trackEvent',
                         category,
-                        data.EventName,
+                        event.EventName,
                         label,
                         value]);
                 }
@@ -404,10 +421,34 @@ var mpGoogleAnalyticsKit = (function (exports) {
                     ga(createCmd('send'),
                         customFlags && customFlags[HITTYPE] ? customFlags[HITTYPE] : 'event',
                         category,
-                        data.EventName,
+                        event.EventName,
                         label,
                         value,
-                        outputDimensionsAndMetrics);
+                        outputDimensionsAndMetrics
+                    );
+
+                    sendOptionalUserTimingMessage(event, outputDimensionsAndMetrics);
+                }
+            }
+
+            function sendOptionalUserTimingMessage(event, outputDimensionsAndMetrics) {
+                // only if there is a custom flag of Google.UserTiming should a user timing message be sent
+                if (event.CustomFlags && event.CustomFlags[USERTIMING] && typeof(event.CustomFlags[USERTIMING]) === 'number') {
+                    var userTimingObject = {
+                        hitType: 'timing',
+                        timingVar: event.EventName,
+                        timingValue: event.CustomFlags[USERTIMING],
+                        timingCategory: event.CustomFlags[CATEGORY] || getEventTypeName(event.EventCategory),
+                        timingLabel: event.CustomFlags[LABEL] || null,
+                    };
+
+                    for (var key in outputDimensionsAndMetrics) {
+                        if (outputDimensionsAndMetrics.hasOwnProperty(key)) {
+                            userTimingObject[key] = outputDimensionsAndMetrics[key];
+                        }
+                    }
+
+                    ga(createCmd('send'), userTimingObject);
                 }
             }
 
@@ -506,6 +547,11 @@ var mpGoogleAnalyticsKit = (function (exports) {
                     }
 
                     isInitialized = true;
+                    
+                    if (window.mParticle.getVersion().split('.')[0] === '2') {
+                        onUserIdentified(mParticle.Identity.getCurrentUser());
+                    }
+
                     return 'Successfully initialized: ' + name;
                 }
                 catch (e) {
@@ -528,6 +574,7 @@ var mpGoogleAnalyticsKit = (function (exports) {
             this.init = initForwarder;
             this.process = processEvent;
             this.setUserIdentity = setUserIdentity;
+            this.onUserIdentified = onUserIdentified;
         };
 
         function getId() {

@@ -160,18 +160,31 @@
         }
 
         function setUserIdentity(id, type) {
-            if (isInitialized) {
-                if (forwarderSettings.useCustomerId == 'True' && type == window.mParticle.IdentityType.CustomerId) {
-                    if (forwarderSettings.classicMode == 'True') {
-                        // ga.js not supported currently
-                    }
-                    else {
-                        ga(createCmd('set'), 'userId', window.mParticle.generateHash(id));
+            if (window.mParticle.getVersion().split('.')[0] === '1') {
+                if (isInitialized) {
+                    if (forwarderSettings.useCustomerId == 'True' && type == window.mParticle.IdentityType.CustomerId) {
+                        if (forwarderSettings.classicMode == 'True') {
+                            // ga.js not supported currently
+                        }
+                        else {
+                            ga(createCmd('set'), 'userId', window.mParticle.generateHash(id));
+                        }
                     }
                 }
+                else {
+                    return 'Can\'t call setUserIdentity on forwarder ' + name + ', not initialized';
+                }
             }
-            else {
-                return 'Can\'t call setUserIdentity on forwarder ' + name + ', not initialized';
+        }
+
+        function onUserIdentified(user) {
+            var userIdentities = user.getUserIdentities().userIdentities;
+            if (isInitialized) {
+                if (forwarderSettings.useCustomerId == 'True' && userIdentities.customerid) {
+                    if (forwarderSettings.classicMode !== 'True') {
+                        ga(createCmd('set'), 'userId', window.mParticle.generateHash(userIdentities.customerid));
+                    }
+                }
             }
         }
 
@@ -507,6 +520,11 @@
                 }
 
                 isInitialized = true;
+                
+                if (window.mParticle.getVersion().split('.')[0] === '2') {
+                    onUserIdentified(mParticle.Identity.getCurrentUser());
+                }
+
                 return 'Successfully initialized: ' + name;
             }
             catch (e) {
@@ -529,6 +547,7 @@
         this.init = initForwarder;
         this.process = processEvent;
         this.setUserIdentity = setUserIdentity;
+        this.onUserIdentified = onUserIdentified;
     };
 
     function getId() {

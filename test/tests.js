@@ -139,6 +139,21 @@ describe('Google Analytics Forwarder', function() {
         mParticle.ProductActionType = ProductActionType;
         mParticle.PromotionType = PromotionActionType;
         mParticle.IdentityType = IdentityType;
+        mParticle.getVersion = function() {
+            return '2.0.1';
+        };
+        mParticle.Identity = {};
+        mParticle.Identity.getCurrentUser = function() {
+            return {
+                getUserIdentities: function() {
+                    return {
+                        userIdentities: {
+                            customerid: 'testUserId',
+                        },
+                    };
+                },
+            };
+        };
         mParticle.generateHash = function(name) {
             var hash = 0,
                 i = 0,
@@ -208,6 +223,25 @@ describe('Google Analytics Forwarder', function() {
         );
         window.googleanalytics.reset();
         window._gaq = [];
+    });
+
+    it('should set a hashed customerid when initializing in v2', function(done) {
+        window.googleanalytics.reset();
+
+        mParticle.forwarder.init(
+            {
+                useCustomerId: 'True',
+            },
+            reportService.cb,
+            true,
+            'tracker-name'
+        );
+
+        window.googleanalytics.args[1][0].should.equal('tracker-name.set');
+        window.googleanalytics.args[1][1].should.equal('userId');
+        (typeof window.googleanalytics.args[1][2]).should.equal('number');
+
+        done();
     });
 
     it('should initialize with ampClientId if clientIdentificationType is AMP', function(done) {
@@ -1006,7 +1040,13 @@ describe('Google Analytics Forwarder', function() {
         done();
     });
 
+    // setUserIdentity is only on MP.js version 1.x
     it('it should set user identity', function(done) {
+        var getVersionBackup = mParticle.getVersion;
+        mParticle.getVersion = function() {
+            return '1.0.0';
+        };
+
         mParticle.forwarder.setUserIdentity(
             'tbreffni@mparticle.com',
             IdentityType.CustomerId
@@ -1017,6 +1057,8 @@ describe('Google Analytics Forwarder', function() {
         window.googleanalytics.args[0][2].should.equal(
             mParticle.generateHash('tbreffni@mparticle.com')
         );
+
+        mParticle.getVersion = getVersionBackup;
 
         done();
     });

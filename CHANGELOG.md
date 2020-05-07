@@ -2,6 +2,15 @@
 
 --
 
+#### 2.0.5 - 2020-05-07
+
+-   Bugfix - hash customer id on reloads
+-   Feat - Add user timing events
+
+#### 2.0.4 - 2020-03-31
+
+-   Bugfix - Allow an attribute to be mapped to multiple dimensions
+
 #### 2.0.3 - 2020-01-29
 
 -   Bugfix - Account for Google.Title Custom Flag
